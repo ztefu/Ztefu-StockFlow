@@ -1,0 +1,49 @@
+import { UserPlus, PackagePlus, LineChart } from 'lucide-react'
+
+export function HowItWorks() {
+  const steps = [
+    {
+      icon: <UserPlus className="text-primary" size={32} />,
+      title: "1. Inscription",
+      description: "Créez votre compte en quelques secondes. C'est rapide, gratuit et sans engagement."
+    },
+    {
+      icon: <PackagePlus className="text-primary" size={32} />,
+      title: "2. Ajoutez vos produits",
+      description: "Importez votre catalogue ou ajoutez vos produits manuellement avec leurs niveaux de stock."
+    },
+    {
+      icon: <LineChart className="text-primary" size={32} />,
+      title: "3. Suivez vos mouvements",
+      description: "Gérez vos entrées et sorties, et visualisez vos performances grâce au tableau de bord intuitif."
+    }
+  ]
+
+  return (
+    <section id="how-it-works" className="py-24 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 md:px-10">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Comment ça marche ?</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Commencez à gérer votre stock comme un professionnel en trois étapes simples.
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-8 relative">
+          {/* Connector line for desktop */}
+          <div className="hidden md:block absolute top-1/4 left-[15%] right-[15%] h-0.5 bg-gray-200 dark:bg-gray-700 z-0"></div>
+          
+          {steps.map((step, i) => (
+            <div key={i} className="relative z-10 flex flex-col items-center text-center p-6">
+              <div className="w-20 h-20 rounded-full bg-white dark:bg-dark-surface flex items-center justify-center mb-6 shadow-md border border-gray-100 dark:border-gray-800">
+                {step.icon}
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{step.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{step.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}

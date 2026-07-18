@@ -5,6 +5,14 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
+function translateError(errorMsg: string) {
+  if (errorMsg.includes('Invalid login credentials')) return 'Identifiants invalides ou incorrects.';
+  if (errorMsg.includes('User already registered')) return 'Un compte existe déjà avec cette adresse email.';
+  if (errorMsg.includes('Password should be at least')) return 'Le mot de passe doit contenir au moins 6 caractères.';
+  if (errorMsg.includes('Email not confirmed')) return 'Veuillez confirmer votre adresse email.';
+  return errorMsg;
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
@@ -16,7 +24,7 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
-    redirect('/login?error=true&message=' + encodeURIComponent(error.message))
+    redirect('/login?error=true&message=' + encodeURIComponent(translateError(error.message)))
   }
 
   revalidatePath('/', 'layout')
@@ -76,7 +84,7 @@ export async function signup(formData: FormData) {
   const { data: signUpData, error } = await supabase.auth.signUp(data)
 
   if (error) {
-    redirect('/login?error=true&message=' + encodeURIComponent(error.message))
+    redirect('/register?error=true&message=' + encodeURIComponent(translateError(error.message)))
   }
 
   // 3. Insérer le profil (si pas de trigger en place)

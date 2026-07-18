@@ -1,0 +1,67 @@
+.gradient-bg {
+  background: radial-gradient(circle at top left, theme('colors.primary.100') 0%, transparent 40%),
+              radial-gradient(circle at bottom right, theme('colors.primary.50') 0%, transparent 40%);
+}
+
+.dark .gradient-bg {
+  background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.1) 0%, transparent 40%),
+              radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.05) 0%, transparent 40%);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.dark .glass-card {
+  background: rgba(31, 41, 55, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations hover/click sur bouton CTA */
+.btn-cta {
+  transition: all 0.3s ease;
+}
+
+.btn-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(37, 99, 235, 0.1);
+}
+
+.btn-cta:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Micro-animations flottantes (Social Proof, Icons) */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.floating-icon {
+  animation: float 4s ease-in-out infinite;
+}
+
+.floating-icon-delayed {
+  animation: float 4s ease-in-out 2s infinite;
+}
+
+@keyframes scrollX {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.scrolling-wrapper {
+  display: flex;
+  width: max-content;
+  animation: scrollX 50s linear infinite;
+}
+
+.scrolling-wrapper:hover {
+  animation-play-state: paused;
+}
