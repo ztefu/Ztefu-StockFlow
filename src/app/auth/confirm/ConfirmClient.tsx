@@ -18,7 +18,7 @@ export default function ConfirmClient() {
 
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as any;
-  const next = searchParams.get("next") || "/dashboard";
+  const next = searchParams.get("next") || "/login";
 
   const handleConfirm = async () => {
     if (!token_hash || !type) {

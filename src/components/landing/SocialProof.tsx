@@ -15,28 +15,28 @@ export function SocialProof() {
   ];
 
   return (
-    <section className="py-12 bg-white dark:bg-dark-surface border-y border-gray-100 dark:border-gray-800 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 md:px-10 text-center">
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-8 uppercase tracking-widest">Ils nous font confiance pour leur croissance</p>
-      </div>
-      
-      <div className="w-full overflow-hidden whitespace-nowrap relative">
-        <div className="scrolling-wrapper flex gap-12 md:gap-20 opacity-40 grayscale hover:grayscale-0 transition-all duration-500 pl-12 md:pl-20">
+    <section className="pb-16 bg-transparent overflow-hidden relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-10">
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-8 uppercase tracking-widest text-center">Ils nous font confiance pour leur croissance</p>
+        
+        <div className="w-full overflow-hidden whitespace-nowrap relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
+          <div className="scrolling-wrapper flex gap-12 md:gap-20 transition-all duration-500 py-4">
           {/* First set of logos */}
           {companies.map((company, i) => (
-            <div key={`set1-${i}`} className="flex items-center gap-2">
-              <div className="text-gray-600 dark:text-gray-400">{company.icon}</div>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{company.name}</span>
+            <div key={`set1-${i}`} className="group flex items-center gap-2 cursor-pointer transition-all duration-300 hover:scale-125">
+              <div className="text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors duration-300">{company.icon}</div>
+              <span className="text-sm font-medium text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors duration-300">{company.name}</span>
             </div>
           ))}
           {/* Duplicated set for infinite loop */}
           {companies.map((company, i) => (
-            <div key={`set2-${i}`} className="flex items-center gap-2">
-              <div className="text-gray-600 dark:text-gray-400">{company.icon}</div>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{company.name}</span>
+            <div key={`set2-${i}`} className="group flex items-center gap-2 cursor-pointer transition-all duration-300 hover:scale-125">
+              <div className="text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors duration-300">{company.icon}</div>
+              <span className="text-sm font-medium text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors duration-300">{company.name}</span>
             </div>
           ))}
         </div>
+      </div>
       </div>
     </section>
   )

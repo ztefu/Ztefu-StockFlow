@@ -1,14 +1,9 @@
 import Link from 'next/link'
-import { ArrowRight, PlayCircle, LineChart, Box, BellRing } from 'lucide-react'
+import { ArrowRight, PlayCircle, LineChart, Box, BellRing, PackageCheck, TrendingUp } from 'lucide-react'
 
 export function Hero() {
   return (
-    <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-32 overflow-hidden">
-      <div className="absolute inset-0 bg-gray-50 dark:bg-gray-900 -z-10">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-b from-primary/10 to-transparent blur-3xl opacity-60"></div>
-        <div className="absolute bottom-0 left-0 w-1/3 h-2/3 bg-gradient-to-tr from-blue-400/10 to-transparent blur-3xl"></div>
-      </div>
-      
+    <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-32 bg-transparent">
       <div className="max-w-7xl mx-auto px-4 md:px-10 grid lg:grid-cols-2 gap-12 items-center">
         <div className="max-w-xl mx-auto lg:mx-0 text-center lg:text-left">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight tracking-tight">
@@ -30,10 +25,10 @@ export function Hero() {
         </div>
         
         <div className="relative w-full aspect-square lg:aspect-[4/3] rounded-2xl p-4 mt-8 lg:mt-0">
-          <div className="relative w-full h-full rounded-2xl overflow-hidden glass-card floating-icon z-10">
+          <div className="relative w-full h-full rounded-2xl overflow-hidden z-10 shadow-[0_20px_60px_-15px_rgba(37,99,235,0.3)] dark:shadow-[0_20px_60px_-15px_rgba(37,99,235,0.15)] floating-icon border border-white/50 dark:border-gray-800/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
             <img 
-              className="w-full h-full object-cover rounded-xl shadow-lg border border-gray-100 dark:border-gray-800" 
-              src="/dashboard-mockup.png"
+              className="w-full h-full object-cover rounded-xl" 
+              src="/dashboard-mockup-responsive.png"
               alt="StockFlow Dashboard Mockup"
             />
           </div>
@@ -51,6 +46,17 @@ export function Hero() {
             <div className="bg-red-100 dark:bg-red-900/30 text-red-500 p-1.5 md:p-2 rounded-full">
               <BellRing size={16} />
             </div>
+          </div>
+          
+          {/* Nouveaux icones avec animations particulieres */}
+          <div className="absolute top-[45%] -left-6 md:top-[55%] md:-left-12 bg-white dark:bg-gray-800 p-2 md:p-3 rounded-full shadow-lg border border-gray-100 dark:border-gray-700 animate-float-pulse z-20">
+            <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-500 p-1.5 md:p-2 rounded-full">
+              <PackageCheck size={18} />
+            </div>
+          </div>
+
+          <div className="absolute top-[60%] right-0 md:top-[40%] md:-right-10 bg-white dark:bg-gray-800 p-2 md:p-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 animate-float-swing z-20">
+            <TrendingUp className="text-purple-500" size={22} />
           </div>
         </div>
       </div>

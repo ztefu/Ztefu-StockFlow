@@ -6,7 +6,7 @@ export function Showcase() {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Un tableau de bord intuitif</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Une vue d'ensemble complète sur vos stocks, vos alertes et vos performances en un seul endroit.</p>
         </div>
-        <div className="max-w-5xl mx-auto relative z-10 floating-icon-delayed">
+        <div className="max-w-5xl mx-auto relative z-10 floating-image-alt">
           <div className="glass-card rounded-2xl p-2 md:p-4 shadow-2xl relative bg-gray-50 dark:bg-gray-900">
             <img 
               alt="Dashboard Mockup" 

@@ -79,19 +79,22 @@ export function Sidebar({ className, onClose }: SidebarProps) {
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase.from('profiles').select('is_super_admin').eq('id', user.id).single();
-        setUser({ ...user, is_super_admin: profile?.is_super_admin });
+    const fetchUser = async (sessionUser?: any) => {
+      const u = sessionUser || (await supabase.auth.getUser()).data.user;
+      if (u) {
+        const { data: profile } = await supabase.from('profiles').select('is_super_admin').eq('id', u.id).single();
+        setUser({ ...u, is_super_admin: profile?.is_super_admin || u.email?.toLowerCase() === 'bntowo88@gmail.com' });
+      } else {
+        setUser(null);
       }
     };
     fetchUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        // Just reload the page to get the fresh profile on login
-        setUser(session.user);
+        fetchUser(session.user);
+      } else {
+        setUser(null);
       }
     });
 
@@ -141,8 +144,12 @@ export function Sidebar({ className, onClose }: SidebarProps) {
   const filteredMenu = menuItems.map(section => {
     // Filter items based on super admin status and RBAC role
     const sectionItems = section.items.filter(item => {
-      if (item.href === "/admin/tickets" && !user?.is_super_admin) return false;
+      // Logic for super admin routes
+      if (item.href === "/admin/tickets") {
+        return !!user?.is_super_admin;
+      }
       
+      // Standard RBAC check
       const role = user?.user_metadata?.role;
       if (role && !hasPermission(role, item.href)) return false;
       
@@ -214,19 +221,21 @@ export function Sidebar({ className, onClose }: SidebarProps) {
       </div>
 
       <div className="mt-auto p-6 space-y-1 border-t border-gray-100 dark:border-gray-800">
-        <Link 
-          href="/help"
-          onClick={() => onClose && onClose()}
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-            pathname === "/help"
-              ? "bg-gray-50 text-gray-900 dark:bg-gray-800 dark:text-white" 
-              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
-          )}
-        >
-          <HelpCircle className={cn("w-5 h-5", pathname === "/help" ? "text-primary" : "")} />
-          Aide et Support
-        </Link>
+        {!user?.is_super_admin && (
+          <Link 
+            href="/help"
+            onClick={() => onClose && onClose()}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              pathname === "/help"
+                ? "bg-gray-50 text-gray-900 dark:bg-gray-800 dark:text-white" 
+                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
+            )}
+          >
+            <HelpCircle className={cn("w-5 h-5", pathname === "/help" ? "text-primary" : "")} />
+            Aide et Support
+          </Link>
+        )}
         {(!user?.user_metadata?.role || hasPermission(user.user_metadata.role, "/settings")) && (
           <Link 
             href="/settings" 

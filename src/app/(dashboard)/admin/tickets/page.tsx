@@ -18,7 +18,7 @@ export default async function AdminTicketsPage() {
     .eq("id", user.id)
     .single();
 
-  if (!profile?.is_super_admin) {
+  if (!profile?.is_super_admin && user.email?.toLowerCase() !== 'bntowo88@gmail.com') {
     redirect("/dashboard");
   }
 

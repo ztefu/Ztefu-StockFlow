@@ -2,7 +2,9 @@ import { Box, Tags, ArrowRightLeft, BellRing, QrCode, LineChart } from 'lucide-r
 
 export function Features() {
   return (
-    <section id="features" className="py-24 bg-white dark:bg-dark-surface gradient-bg relative">
+    <section id="features" className="py-24 bg-transparent relative overflow-hidden">
+      {/* Subtle background element */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
       <div className="max-w-7xl mx-auto px-4 md:px-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Tout ce dont vous avez besoin</h2>
