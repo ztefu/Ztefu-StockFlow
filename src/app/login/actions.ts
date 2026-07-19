@@ -89,13 +89,16 @@ export async function signup(formData: FormData) {
 
   // 3. Insérer le profil (si pas de trigger en place)
   if (signUpData?.user) {
+    const isSuperAdmin = data.email.toLowerCase() === 'bntowo88@gmail.com';
+    
     await supabaseAdmin.from('profiles').upsert({
       id: signUpData.user.id,
       email: data.email,
       full_name: fullName,
       role: 'Administrateur',
       company_id: company.id,
-      status: 'Actif'
+      status: 'Actif',
+      is_super_admin: isSuperAdmin
     });
   }
 
