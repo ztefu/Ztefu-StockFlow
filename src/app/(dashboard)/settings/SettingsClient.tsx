@@ -126,7 +126,7 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-8 gap-6 md:gap-0">
         <div className="text-center md:text-left w-full">
-          <div className="text-sm text-gray-500 mb-1 font-medium">Menu Principal &gt; Paramètres</div>
+
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Paramètres de l'Entreprise</h1>
           <p className="text-gray-500 mt-2">Configurez les informations globales de votre entreprise et les préférences système.</p>
         </div>

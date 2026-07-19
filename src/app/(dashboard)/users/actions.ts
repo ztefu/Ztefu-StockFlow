@@ -111,6 +111,7 @@ export async function updateUser(id: string, data: { full_name: string, email: s
       role: data.role,
     })
     .eq('id', id)
+    .eq('company_id', profile.company_id)
     .select()
     .single()
 

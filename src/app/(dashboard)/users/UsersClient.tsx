@@ -215,7 +215,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-8 gap-6 md:gap-0">
         <div className="text-center md:text-left w-full">
-          <div className="text-sm text-gray-500 mb-1 font-medium">Menu Principal &gt; Utilisateurs</div>
+
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestion des Utilisateurs</h1>
           <p className="text-gray-500 mt-2">Gérez les profils et les rôles des membres de votre équipe.</p>
         </div>

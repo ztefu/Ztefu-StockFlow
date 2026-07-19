@@ -50,6 +50,11 @@ export async function createProduct(formData: FormData) {
 
   // Handle image upload if a file was provided
   if (image && image.size > 0) {
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(image.type)) {
+      return { error: "Type de fichier invalide. Seuls JPEG, PNG et WEBP sont autorisés." };
+    }
+
     const fileExt = image.name.split('.').pop()
     const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
     const filePath = `products/${fileName}`
@@ -113,6 +118,20 @@ export async function updateProduct(id: string, formData: FormData) {
 
   const supabase = await createClient()
 
+  // Verify auth and get company_id
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { error: "Non authentifié" }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (!profile?.company_id) {
+    return { error: "Aucune entreprise associée à ce profil" }
+  }
+
   const updateData: any = { 
     name, 
     sku 
@@ -126,6 +145,7 @@ export async function updateProduct(id: string, formData: FormData) {
     .from('products')
     .update(updateData)
     .eq('id', id)
+    .eq('company_id', profile.company_id)
 
   if (error) {
     return { error: error.message }
@@ -138,10 +158,25 @@ export async function updateProduct(id: string, formData: FormData) {
 export async function deleteProduct(id: string) {
   const supabase = await createClient()
 
+  // Verify auth and get company_id
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { error: "Non authentifié" }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (!profile?.company_id) {
+    return { error: "Aucune entreprise associée à ce profil" }
+  }
+
   const { error } = await supabase
     .from('products')
     .delete()
     .eq('id', id)
+    .eq('company_id', profile.company_id)
 
   if (error) {
     return { error: error.message }

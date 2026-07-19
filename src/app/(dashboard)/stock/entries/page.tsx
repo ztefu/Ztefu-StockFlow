@@ -11,10 +11,24 @@ export default async function StockEntriesPage() {
     redirect('/auth/login');
   }
 
-  // Fetch products for the dropdown
-  const { data: productsData } = await supabase
-    .from('products')
-    .select('id, name, stock_actuel');
+  // Fetch products and movements in parallel
+  const [
+    { data: productsData },
+    { data: movementsData }
+  ] = await Promise.all([
+    supabase
+      .from('products')
+      .select('id, name, stock_actuel'),
+    supabase
+      .from('stock_movements')
+      .select(`
+        *,
+        products (name),
+        profiles (full_name)
+      `)
+      .eq('type', 'in')
+      .order('created_at', { ascending: false })
+  ]);
 
   const formattedProducts = productsData?.map(p => ({
     id: p.id,
@@ -22,17 +36,6 @@ export default async function StockEntriesPage() {
     stock: p.stock_actuel,
     unit: 'Pièce' // Default unit for now
   })) || [];
-
-  // Fetch only entry movements
-  const { data: movementsData } = await supabase
-    .from('stock_movements')
-    .select(`
-      *,
-      products (name),
-      profiles (full_name)
-    `)
-    .eq('type', 'in')
-    .order('created_at', { ascending: false });
 
   const formattedEntries = movementsData?.map((m: any) => ({
     id: m.id,

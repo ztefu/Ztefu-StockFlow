@@ -15,11 +15,47 @@ export default async function DashboardPage() {
 
   const companyId = profile?.company_id;
 
-  // 1. Fetch all products
-  const { data: productsData } = await supabase
-    .from('products')
-    .select('*')
-    .eq('company_id', companyId);
+  // Fetch all required data in parallel
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [
+    { data: productsData },
+    { data: todayMovementsData },
+    { data: recentMovementsData },
+    { data: allMovements }
+  ] = await Promise.all([
+    // 1. Fetch all products
+    supabase
+      .from('products')
+      .select('*')
+      .eq('company_id', companyId),
+      
+    // 2. Fetch movements for today
+    supabase
+      .from('stock_movements')
+      .select('*')
+      .eq('company_id', companyId)
+      .gte('date', today.toISOString()),
+      
+    // 3. Fetch recent movements
+    supabase
+      .from('stock_movements')
+      .select(`
+        *,
+        products (name),
+        profiles (full_name)
+      `)
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+      .limit(5),
+      
+    // 4. Fetch all movements for chart
+    supabase
+      .from('stock_movements')
+      .select('type, quantity, date')
+      .eq('company_id', companyId)
+  ]);
 
   const products = productsData || [];
   
@@ -43,16 +79,6 @@ export default async function DashboardPage() {
     status: p.stock_actuel === 0 ? "out_of_stock" : "low_stock"
   }));
 
-  // 2. Fetch movements for today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const { data: todayMovementsData } = await supabase
-    .from('stock_movements')
-    .select('*')
-    .eq('company_id', companyId)
-    .gte('date', today.toISOString());
-
   const todayMovements = todayMovementsData || [];
   
   const entriesToday = todayMovements
@@ -63,18 +89,6 @@ export default async function DashboardPage() {
     .filter((m: any) => m.type === 'out')
     .reduce((acc: number, m: any) => acc + m.quantity, 0);
 
-  // 3. Fetch recent movements
-  const { data: recentMovementsData } = await supabase
-    .from('stock_movements')
-    .select(`
-      *,
-      products (name),
-      profiles (full_name)
-    `)
-    .eq('company_id', companyId)
-    .order('created_at', { ascending: false })
-    .limit(5);
-
   const recentMovements = (recentMovementsData || []).map((m: any) => ({
     id: m.id,
     product: m.products?.name || "Produit inconnu",
@@ -84,12 +98,6 @@ export default async function DashboardPage() {
     date: m.date,
     user: m.profiles?.full_name || "Système"
   }));
-
-  // 4. Generate Chart Data (Last 6 months)
-  const { data: allMovements } = await supabase
-    .from('stock_movements')
-    .select('type, quantity, date')
-    .eq('company_id', companyId);
 
   const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
   const chartData = [];

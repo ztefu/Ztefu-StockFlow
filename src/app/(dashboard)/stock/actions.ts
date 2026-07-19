@@ -21,6 +21,28 @@ export async function createStockEntry(formData: FormData) {
     return { error: 'Vous devez être connecté.' };
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.company_id) {
+    return { error: 'Aucune entreprise associée à ce profil.' };
+  }
+
+  // Vérifier que le produit appartient bien à la même entreprise
+  const { data: productCheck } = await supabase
+    .from('products')
+    .select('id')
+    .eq('id', product_id)
+    .eq('company_id', profile.company_id)
+    .single();
+
+  if (!productCheck) {
+    return { error: 'Produit non trouvé ou accès refusé.' };
+  }
+
   const { error } = await supabase
     .from('stock_movements')
     .insert([{
@@ -31,7 +53,8 @@ export async function createStockEntry(formData: FormData) {
       date,
       fournisseur: fournisseur || null,
       observation: observation || null,
-      status: 'completed'
+      status: 'completed',
+      company_id: profile.company_id
     }]);
 
   if (error) {
@@ -62,14 +85,29 @@ export async function createStockExit(formData: FormData) {
     return { error: 'Vous devez être connecté.' };
   }
 
-  // Vérifier le stock actuel pour ne pas faire de sortie en dessous de 0
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.company_id) {
+    return { error: 'Aucune entreprise associée à ce profil.' };
+  }
+
+  // Vérifier le stock actuel pour ne pas faire de sortie en dessous de 0, et vérifier l'entreprise
   const { data: product } = await supabase
     .from('products')
     .select('stock_actuel')
     .eq('id', product_id)
+    .eq('company_id', profile.company_id)
     .single();
 
-  if (!product || product.stock_actuel < quantity) {
+  if (!product) {
+    return { error: 'Produit non trouvé ou accès refusé.' };
+  }
+
+  if (product.stock_actuel < quantity) {
     return { error: 'Stock insuffisant pour cette sortie.' };
   }
 
@@ -83,7 +121,8 @@ export async function createStockExit(formData: FormData) {
       date,
       motif: motif || null,
       observation: observation || null,
-      status: 'completed'
+      status: 'completed',
+      company_id: profile.company_id
     }]);
 
   if (error) {

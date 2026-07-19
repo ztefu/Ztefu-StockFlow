@@ -90,7 +90,7 @@ export function TicketsClient({ tickets: initialTickets }: TicketsClientProps) {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-8 gap-6 md:gap-0">
         <div className="text-center md:text-left w-full">
-          <div className="text-sm text-gray-500 mb-1 font-medium">Administration &gt; Tickets Support</div>
+
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tickets Clients (Super Admin)</h1>
           <p className="text-gray-500 mt-2">Gérez et répondez aux demandes d'assistance de toutes les entreprises.</p>
         </div>

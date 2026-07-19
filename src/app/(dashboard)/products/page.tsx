@@ -15,24 +15,28 @@ export default async function ProductsPage() {
 
   const companyId = profile?.company_id;
 
-  // Fetch categories for the filter dropdown
-  const { data: categoriesData } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('company_id', companyId)
-    .order('name')
-
-  // Fetch products with their category names
-  const { data: productsData, error } = await supabase
-    .from('products')
-    .select(`
-      *,
-      categories (
-        name
-      )
-    `)
-    .eq('company_id', companyId)
-    .order('created_at', { ascending: false })
+  // Fetch categories and products in parallel
+  const [
+    { data: categoriesData },
+    { data: productsData, error }
+  ] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('*')
+      .eq('company_id', companyId)
+      .order('name'),
+      
+    supabase
+      .from('products')
+      .select(`
+        *,
+        categories (
+          name
+        )
+      `)
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false })
+  ]);
 
   if (error) {
     console.error('Error fetching products:', error)

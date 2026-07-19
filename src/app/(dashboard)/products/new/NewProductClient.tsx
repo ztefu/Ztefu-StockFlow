@@ -58,9 +58,7 @@ export default function NewProductClient({ categories }: { categories: Category[
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-8 gap-6 md:gap-0">
         <div className="text-center md:text-left w-full">
-          <div className="text-sm text-gray-500 mb-1 font-medium">
-            <Link href="/products" className="hover:text-primary transition-colors">Produits</Link> &gt; Ajouter un produit
-          </div>
+
           <div className="flex items-center gap-3 justify-center md:justify-start">
             <Link href="/products" className="p-2 -ml-2 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5" />

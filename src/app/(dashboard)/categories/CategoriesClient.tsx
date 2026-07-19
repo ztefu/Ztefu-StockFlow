@@ -111,7 +111,7 @@ export default function CategoriesClient({ initialCategories, userRole }: { init
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-8 gap-6 md:gap-0">
         <div className="text-center md:text-left w-full">
-          <div className="text-sm text-gray-500 mb-1 font-medium">Menu Principal &gt; Catégories</div>
+
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestion des Catégories</h1>
           <p className="text-gray-500 mt-2">Organisez vos produits pour faciliter la recherche et l'analyse.</p>
         </div>

@@ -11,10 +11,24 @@ export default async function StockExitsPage() {
     redirect('/auth/login');
   }
 
-  // Fetch products for the dropdown
-  const { data: productsData } = await supabase
-    .from('products')
-    .select('id, name, stock_actuel, stock_min');
+  // Fetch products and movements in parallel
+  const [
+    { data: productsData },
+    { data: movementsData }
+  ] = await Promise.all([
+    supabase
+      .from('products')
+      .select('id, name, stock_actuel, stock_min'),
+    supabase
+      .from('stock_movements')
+      .select(`
+        *,
+        products (name),
+        profiles (full_name)
+      `)
+      .eq('type', 'out')
+      .order('created_at', { ascending: false })
+  ]);
 
   const formattedProducts = productsData?.map(p => ({
     id: p.id,
@@ -23,17 +37,6 @@ export default async function StockExitsPage() {
     minStock: p.stock_min,
     unit: 'Pièce' // Default unit for now
   })) || [];
-
-  // Fetch only exit movements
-  const { data: movementsData } = await supabase
-    .from('stock_movements')
-    .select(`
-      *,
-      products (name),
-      profiles (full_name)
-    `)
-    .eq('type', 'out')
-    .order('created_at', { ascending: false });
 
   const formattedExits = movementsData?.map((m: any) => ({
     id: m.id,

@@ -13,9 +13,23 @@ export async function createCategory(formData: FormData) {
 
   const supabase = await createClient()
 
+  // Verify auth and get company_id
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { error: "Non authentifié" }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (!profile?.company_id) {
+    return { error: "Aucune entreprise associée à ce profil" }
+  }
+
   const { data, error } = await supabase
     .from('categories')
-    .insert([{ name, description }])
+    .insert([{ name, description, company_id: profile.company_id }])
     .select()
 
   if (error) {
@@ -36,10 +50,25 @@ export async function updateCategory(id: string, formData: FormData) {
 
   const supabase = await createClient()
 
+  // Verify auth and get company_id
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { error: "Non authentifié" }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (!profile?.company_id) {
+    return { error: "Aucune entreprise associée à ce profil" }
+  }
+
   const { error } = await supabase
     .from('categories')
     .update({ name, description })
     .eq('id', id)
+    .eq('company_id', profile.company_id)
 
   if (error) {
     return { error: error.message }
@@ -52,10 +81,25 @@ export async function updateCategory(id: string, formData: FormData) {
 export async function deleteCategory(id: string) {
   const supabase = await createClient()
 
+  // Verify auth and get company_id
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { error: "Non authentifié" }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (!profile?.company_id) {
+    return { error: "Aucune entreprise associée à ce profil" }
+  }
+
   const { error } = await supabase
     .from('categories')
     .delete()
     .eq('id', id)
+    .eq('company_id', profile.company_id)
 
   if (error) {
     return { error: error.message }
