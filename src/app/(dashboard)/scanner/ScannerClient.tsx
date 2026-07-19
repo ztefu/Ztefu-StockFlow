@@ -18,50 +18,62 @@ export default function ScannerClient({ products }: { products: any[] }) {
         scannerRef.current = new Html5Qrcode("reader");
       }
       
+      // If already scanning, don't start again
+      if (scannerRef.current.isScanning) return;
+
+      setIsScanning(true);
+      
       await scannerRef.current.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 } },
         (decodedText) => {
           setScanResult(decodedText);
-          stopScanner(); // Stop after successful scan
           
-          const product = products.find(p => p.sku === decodedText);
-          if (product) {
-            toast.success(`Produit trouvé : ${product.name}`);
-            router.push(`/products`);
-          } else {
-            toast.error(`Produit avec SKU ${decodedText} non trouvé.`);
-          }
+          // Stop after successful scan
+          stopScanner().then(() => {
+            const product = products.find(p => p.sku === decodedText);
+            if (product) {
+              toast.success(`Produit trouvé : ${product.name}`);
+              router.push(`/products`);
+            } else {
+              toast.error(`Produit avec SKU ${decodedText} non trouvé.`);
+            }
+          });
         },
         (errorMessage) => {
           // Ignore frequent scan errors
         }
       );
-      setIsScanning(true);
     } catch (err) {
       console.error("Error starting scanner", err);
+      setIsScanning(false);
       toast.error("Impossible d'accéder à la caméra. Vérifiez les permissions.");
     }
   };
 
   const stopScanner = async () => {
-    if (scannerRef.current && isScanning) {
+    setIsScanning(false);
+    if (scannerRef.current) {
       try {
-        await scannerRef.current.stop();
-        setIsScanning(false);
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
       } catch (err) {
-        console.error("Error stopping scanner", err);
+        console.error("Error stopping scanner (ignored):", err);
       }
     }
   };
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current && isScanning) {
-        scannerRef.current.stop().catch(console.error);
+      // Cleanup on unmount
+      if (scannerRef.current) {
+        if (scannerRef.current.isScanning) {
+          scannerRef.current.stop().catch(() => {});
+        }
       }
     };
-  }, [isScanning]);
+  }, []);
 
   return (
     <div className="w-full max-w-xl mx-auto space-y-6">
@@ -91,15 +103,16 @@ export default function ScannerClient({ products }: { products: any[] }) {
           )}
         </div>
 
-        <div className="overflow-hidden rounded-xl bg-black/5 relative">
-          <div id="reader" className="w-full min-h-[300px] flex items-center justify-center">
-            {!isScanning && (
-              <div className="text-gray-400 flex flex-col items-center gap-3">
-                <Camera className="w-10 h-10 opacity-50" />
-                <p className="text-sm font-medium">Caméra désactivée</p>
-              </div>
-            )}
-          </div>
+        <div className="overflow-hidden rounded-xl bg-black/5 relative min-h-[300px] flex items-center justify-center">
+          {/* Le container "reader" ne doit avoir aucun enfant géré par React ! */}
+          <div id="reader" className="w-full h-full absolute inset-0 z-10" style={{ display: isScanning ? 'block' : 'none' }}></div>
+          
+          {!isScanning && (
+            <div className="text-gray-400 flex flex-col items-center gap-3 z-0">
+              <Camera className="w-10 h-10 opacity-50" />
+              <p className="text-sm font-medium">Caméra désactivée</p>
+            </div>
+          )}
         </div>
         
         {scanResult && (
