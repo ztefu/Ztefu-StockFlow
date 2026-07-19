@@ -22,7 +22,8 @@ import {
   User,
   LogOut,
   ChevronUp,
-  MessageCircle
+  MessageCircle,
+  ScanLine
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import toast from "react-hot-toast";
@@ -45,6 +46,7 @@ const menuItems = [
       { label: "Entrées", icon: ArrowDownToLine, href: "/stock/entries" },
       { label: "Sorties", icon: ArrowUpFromLine, href: "/stock/exits" },
       { label: "Historique", icon: History, href: "/stock/movements" },
+      { label: "Scanner QR", icon: ScanLine, href: "/scanner" },
     ]
   },
   {

@@ -6,6 +6,7 @@ import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye, X, AlertTriang
 import { cn } from "@/lib/utils/cn";
 import toast from "react-hot-toast";
 import { deleteProduct, updateProduct } from "./actions";
+import { exportToCSV, exportToPDF } from "@/lib/utils/export";
 
 interface Product {
   id: string;
@@ -107,13 +108,42 @@ export default function ProductsClient({ initialProducts, categoriesList, userRo
           <p className="text-gray-500 mt-2">Gérez l'ensemble de vos articles et leurs niveaux de stock.</p>
         </div>
         {canEdit && (
-          <div className="flex gap-4 justify-center md:justify-end w-full md:w-auto">
+          <div className="flex gap-2 justify-center md:justify-end w-full md:w-auto flex-wrap">
+            <button 
+              onClick={() => {
+                const csvData = filteredProducts.map(p => ({
+                  'Produit': p.name,
+                  'SKU': p.sku,
+                  'Catégorie': p.category,
+                  'Prix Achat': p.price,
+                  'Prix Vente': p.sellPrice,
+                  'Stock': p.stock,
+                  'Statut': p.status
+                }));
+                exportToCSV('produits.csv', csvData);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-white border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium transition-all"
+            >
+              CSV
+            </button>
+            <button 
+              onClick={() => {
+                const headers = ['Produit', 'SKU', 'Catégorie', 'Stock', 'Prix Vente'];
+                const pdfData = filteredProducts.map(p => [
+                  p.name, p.sku, p.category, p.stock.toString(), p.sellPrice?.toString() + ' XAF'
+                ]);
+                exportToPDF('produits.pdf', 'Liste des Produits', headers, pdfData);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-white border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium transition-all"
+            >
+              PDF
+            </button>
             <Link 
               href="/products/new"
               className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-all active:scale-95 shadow-sm shadow-primary/30 whitespace-nowrap"
             >
               <Plus className="w-5 h-5" />
-              Ajouter un produit
+              Nouveau
             </Link>
           </div>
         )}

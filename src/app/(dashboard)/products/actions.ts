@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+import { ProductSchema, ProductUpdateSchema } from '@/lib/validations'
+
 export async function createProduct(formData: FormData) {
   const name = formData.get('name') as string
   const description = formData.get('description') as string
@@ -14,11 +16,36 @@ export async function createProduct(formData: FormData) {
   const sku = formData.get('sku') as string
   const image = formData.get('image') as File | null
 
-  if (!name || !sku || !category_id) {
-    return { error: 'Nom, SKU et catégorie sont requis' }
+  const validationResult = ProductSchema.safeParse({
+    name,
+    category_id,
+    price: isNaN(price) ? 0 : price,
+    purchase_price: isNaN(purchase_price) ? 0 : purchase_price,
+    stock_actuel: isNaN(stock_actuel) ? 0 : stock_actuel,
+    stock_min: isNaN(stock_min) ? 0 : stock_min,
+    sku
+  });
+
+  if (!validationResult.success) {
+    return { error: validationResult.error.issues[0].message }
   }
 
   const supabase = await createClient()
+
+  // Get current user and their company_id
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { error: "Non authentifié" }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (!profile?.company_id) {
+    return { error: "Aucune entreprise associée à ce profil" }
+  }
+
   let image_url = null
 
   // Handle image upload if a file was provided
@@ -48,6 +75,7 @@ export async function createProduct(formData: FormData) {
     .insert([{ 
       name, 
       category_id, 
+      company_id: profile.company_id,
       price: isNaN(price) ? 0 : price, 
       purchase_price: isNaN(purchase_price) ? 0 : purchase_price,
       stock_actuel: isNaN(stock_actuel) ? 0 : stock_actuel, 
@@ -71,8 +99,16 @@ export async function updateProduct(id: string, formData: FormData) {
   const purchase_price = parseFloat(formData.get('cost_price') as string)
   const sku = formData.get('sku') as string
 
-  if (!name || !sku) {
-    return { error: 'Le nom et le SKU sont requis' }
+  const validationResult = ProductUpdateSchema.safeParse({
+    name,
+    category_id,
+    price: isNaN(price) ? undefined : price,
+    purchase_price: isNaN(purchase_price) ? undefined : purchase_price,
+    sku
+  });
+
+  if (!validationResult.success) {
+    return { error: validationResult.error.issues[0].message }
   }
 
   const supabase = await createClient()

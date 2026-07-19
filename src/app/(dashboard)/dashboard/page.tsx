@@ -4,10 +4,22 @@ import { createClient } from "@/lib/supabase/server";
 export default async function DashboardPage() {
   const supabase = await createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null; // Or redirect
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', user.id)
+    .single();
+
+  const companyId = profile?.company_id;
+
   // 1. Fetch all products
   const { data: productsData } = await supabase
     .from('products')
-    .select('*');
+    .select('*')
+    .eq('company_id', companyId);
 
   const products = productsData || [];
   
@@ -38,6 +50,7 @@ export default async function DashboardPage() {
   const { data: todayMovementsData } = await supabase
     .from('stock_movements')
     .select('*')
+    .eq('company_id', companyId)
     .gte('date', today.toISOString());
 
   const todayMovements = todayMovementsData || [];
@@ -58,6 +71,7 @@ export default async function DashboardPage() {
       products (name),
       profiles (full_name)
     `)
+    .eq('company_id', companyId)
     .order('created_at', { ascending: false })
     .limit(5);
 
@@ -74,7 +88,8 @@ export default async function DashboardPage() {
   // 4. Generate Chart Data (Last 6 months)
   const { data: allMovements } = await supabase
     .from('stock_movements')
-    .select('type, quantity, date');
+    .select('type, quantity, date')
+    .eq('company_id', companyId);
 
   const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
   const chartData = [];

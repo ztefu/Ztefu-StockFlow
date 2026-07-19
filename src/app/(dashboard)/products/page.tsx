@@ -7,10 +7,19 @@ export default async function ProductsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   const userRole = user?.user_metadata?.role || 'Utilisateur'
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', user?.id)
+    .single();
+
+  const companyId = profile?.company_id;
+
   // Fetch categories for the filter dropdown
   const { data: categoriesData } = await supabase
     .from('categories')
     .select('*')
+    .eq('company_id', companyId)
     .order('name')
 
   // Fetch products with their category names
@@ -22,6 +31,7 @@ export default async function ProductsPage() {
         name
       )
     `)
+    .eq('company_id', companyId)
     .order('created_at', { ascending: false })
 
   if (error) {
