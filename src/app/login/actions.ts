@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { headers } from 'next/headers'
 
 function translateError(errorMsg: string) {
   if (errorMsg.includes('Invalid login credentials')) return 'Identifiants invalides ou incorrects.';
@@ -69,10 +70,16 @@ export async function signup(formData: FormData) {
     address: 'Douala, Cameroun'
   }]);
 
+  const headersList = await headers();
+  const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'localhost:3000';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const origin = `${protocol}://${host}`;
+
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
     options: {
+      emailRedirectTo: `${origin}/auth/callback`,
       data: {
         full_name: fullName,
         company_id: company.id,

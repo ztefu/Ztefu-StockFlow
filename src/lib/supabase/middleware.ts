@@ -3,6 +3,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { hasPermission } from '../permissions'
 
 export async function updateSession(request: NextRequest) {
+  // Intercept Supabase email confirmations that incorrectly land on the root URL
+  if (request.nextUrl.pathname === '/' && request.nextUrl.searchParams.has('code')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/callback'
+    return NextResponse.redirect(url)
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
