@@ -96,7 +96,8 @@ export async function signup(formData: FormData) {
 
   // 3. Insérer le profil (si pas de trigger en place)
   if (signUpData?.user) {
-    const isSuperAdmin = data.email.toLowerCase() === 'bntowo88@gmail.com';
+    const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
+    const isSuperAdmin = adminEmails.includes(data.email.toLowerCase());
     
     await supabaseAdmin.from('profiles').upsert({
       id: signUpData.user.id,
