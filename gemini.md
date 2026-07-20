@@ -1,9 +1,9 @@
-# Projet StockFlow - Documentation & Contexte pour l'IA
+# Projet StockFlow AF - Documentation & Contexte pour l'IA
 
-Ce document résume le contexte complet, l'architecture, les fonctionnalités et les choix de design de l'application **StockFlow**. Son but est de fournir un contexte immédiat à toute future session ou modèle IA travaillant sur ce projet.
+Ce document résume le contexte complet, l'architecture, les fonctionnalités et les choix de design de l'application **StockFlow AF**. Son but est de fournir un contexte immédiat à toute future session ou modèle IA travaillant sur ce projet.
 
 ## 1. À Propos du Projet
-- **Nom de l'application** : StockFlow
+- **Nom de l'application** : StockFlow AF
 - **Type** : Application SaaS de gestion des stocks et de l'inventaire.
 - **Objectif** : Fournir une interface premium, intuitive et réactive pour gérer les produits, les mouvements de stocks (entrées/sorties), les utilisateurs et analyser les données via des rapports et tableaux de bord.
 

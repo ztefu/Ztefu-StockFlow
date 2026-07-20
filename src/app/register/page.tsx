@@ -21,11 +21,11 @@ export default async function RegisterPage({
         <div className="mb-8">
           <Link href="/" className="flex items-center justify-center gap-2 mb-6 hover:opacity-80 transition-opacity">
             <Logo size="md" />
-            <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">StockFlow</span>
+            <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">StockFlow AF</span>
           </Link>
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Creer un compte</h1>
-            <p className="text-sm text-gray-500 mt-2">Rejoignez StockFlow pour gérer vos stocks efficacement.</p>
+            <p className="text-sm text-gray-500 mt-2">Rejoignez StockFlow AF pour gérer vos stocks efficacement.</p>
           </div>
         </div>
 

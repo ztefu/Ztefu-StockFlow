@@ -9,7 +9,7 @@ export default function ConfidentialitePage() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Logo size="md" />
-            <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">StockFlow</span>
+            <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">StockFlow AF</span>
           </Link>
           <Link href="/" className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white">
             Retour à l'accueil
@@ -27,7 +27,7 @@ export default function ConfidentialitePage() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">1. Collecte des Données</h2>
               <p>
-                Dans le cadre de l'utilisation de StockFlow Africa, nous sommes amenés à collecter des données personnelles et professionnelles :
+                Dans le cadre de l'utilisation de StockFlow AF, nous sommes amenés à collecter des données personnelles et professionnelles :
               </p>
               <ul className="list-disc pl-5 mt-2 space-y-1">
                 <li>Données d'identification (Nom, Email, Numéro de téléphone)</li>
@@ -53,7 +53,7 @@ export default function ConfidentialitePage() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">3. Sécurité et Hébergement</h2>
               <p>
-                La sécurité de vos données est notre priorité. StockFlow Africa utilise une infrastructure cloud sécurisée (Supabase/AWS) avec chiffrement en transit (HTTPS/TLS) et au repos. L'accès à vos données est strictement cloisonné : une entreprise ne peut en aucun cas accéder aux données d'une autre entreprise.
+                La sécurité de vos données est notre priorité. StockFlow AF utilise une infrastructure cloud sécurisée (Supabase/AWS) avec chiffrement en transit (HTTPS/TLS) et au repos. L'accès à vos données est strictement cloisonné : une entreprise ne peut en aucun cas accéder aux données d'une autre entreprise.
               </p>
             </section>
 

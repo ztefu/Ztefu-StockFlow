@@ -10,7 +10,7 @@ export function Hero() {
             Gérez votre stock comme un pro, sans effort.
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-            Oubliez les fichiers Excel complexes et les erreurs de saisie. StockFlow vous offre une plateforme intuitive pour suivre votre inventaire en temps réel et optimiser votre activité.
+            Oubliez les fichiers Excel complexes et les erreurs de saisie. StockFlow AF vous offre une plateforme intuitive pour suivre votre inventaire en temps réel et optimiser votre activité.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <Link href="/register" className="bg-primary text-white px-8 py-3.5 rounded-full font-medium hover:bg-primary-dark transition-all flex items-center justify-center gap-2 btn-cta">
@@ -29,7 +29,7 @@ export function Hero() {
             <img 
               className="w-full h-full object-cover rounded-xl" 
               src="/dashboard-mockup-responsive.png"
-              alt="StockFlow Dashboard Mockup"
+              alt="StockFlow AF Dashboard Mockup"
             />
           </div>
           

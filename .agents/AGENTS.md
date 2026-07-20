@@ -1,6 +1,6 @@
-# StockFlow Africa - Design System & UI Guidelines
+# StockFlow AF - Design System & UI Guidelines
 
-Ce fichier définit les règles strictes d'interface utilisateur et de design system à appliquer pour TOUTES les nouvelles pages et composants de l'application StockFlow.
+Ce fichier définit les règles strictes d'interface utilisateur et de design system à appliquer pour TOUTES les nouvelles pages et composants de l'application StockFlow AF.
 
 ## 1. Philosophie Générale
 - **Style Visuel** : Moderne, épuré, type "SaaS premium".

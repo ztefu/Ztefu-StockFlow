@@ -15,7 +15,7 @@ export function MobileSidebar() {
           <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
             <span className="text-white font-bold text-xl">S</span>
           </div>
-          <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">StockFlow</span>
+          <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">StockFlow AF</span>
         </div>
         <button 
           onClick={() => setIsOpen(true)}

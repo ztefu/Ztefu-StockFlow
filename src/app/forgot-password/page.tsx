@@ -17,7 +17,7 @@ export default async function ForgotPasswordPage({
         <div className="mb-8">
           <div className="flex items-center justify-center gap-2 mb-6">
             <Logo size="md" />
-            <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">StockFlow</span>
+            <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">StockFlow AF</span>
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mot de passe oublié</h1>

@@ -9,7 +9,7 @@ export default function CGUPage() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Logo size="md" />
-            <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">StockFlow</span>
+            <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">StockFlow AF</span>
           </Link>
           <Link href="/" className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white">
             Retour à l'accueil
@@ -27,7 +27,7 @@ export default function CGUPage() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">1. Présentation du Service</h2>
               <p>
-                StockFlow Africa est une solution Software as a Service (SaaS) conçue pour la gestion des stocks, la facturation et le suivi de l'inventaire pour les petites et moyennes entreprises (PME) opérant en Afrique. L'utilisation du service implique l'acceptation pleine et entière des présentes Conditions Générales d'Utilisation.
+                StockFlow AF est une solution Software as a Service (SaaS) conçue pour la gestion des stocks, la facturation et le suivi de l'inventaire pour les petites et moyennes entreprises (PME) opérant en Afrique. L'utilisation du service implique l'acceptation pleine et entière des présentes Conditions Générales d'Utilisation.
               </p>
             </section>
 
@@ -41,7 +41,7 @@ export default function CGUPage() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">3. Abonnements et Paiements</h2>
               <p>
-                StockFlow propose différents plans tarifaires, incluant une version gratuite limitée (basée sur des quotas d'actions ou de produits) et des plans premium. Les paiements sont traités par nos partenaires sécurisés (ex: Flutterwave). En souscrivant à un plan payant, vous acceptez la facturation récurrente selon la période choisie (mensuelle ou annuelle).
+                StockFlow AF propose différents plans tarifaires, incluant une version gratuite limitée (basée sur des quotas d'actions ou de produits) et des plans premium. Les paiements sont traités par nos partenaires sécurisés (ex: Flutterwave). En souscrivant à un plan payant, vous acceptez la facturation récurrente selon la période choisie (mensuelle ou annuelle).
               </p>
               <p>
                 Les quotas du plan gratuit sont sujets à modification. En cas de dépassement de quota, l'accès à certaines fonctionnalités de création pourra être bloqué jusqu'à la mise à niveau vers un plan supérieur.
@@ -51,7 +51,7 @@ export default function CGUPage() {
             <section>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">4. Responsabilité des Données</h2>
               <p>
-                Vous restez le propriétaire exclusif des données saisies dans StockFlow (produits, mouvements de stocks, informations clients). Nous nous engageons à mettre en œuvre des mesures de sécurité industrielles (chiffrement, sauvegardes) pour protéger ces données. Toutefois, StockFlow ne saurait être tenu responsable d'une perte de données résultant d'une erreur de l'utilisateur ou d'un cas de force majeure.
+                Vous restez le propriétaire exclusif des données saisies dans StockFlow AF (produits, mouvements de stocks, informations clients). Nous nous engageons à mettre en œuvre des mesures de sécurité industrielles (chiffrement, sauvegardes) pour protéger ces données. Toutefois, StockFlow AF ne saurait être tenu responsable d'une perte de données résultant d'une erreur de l'utilisateur ou d'un cas de force majeure.
               </p>
             </section>
 

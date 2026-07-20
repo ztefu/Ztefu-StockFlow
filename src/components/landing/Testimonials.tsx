@@ -6,7 +6,7 @@ export function Testimonials() {
       <div className="max-w-7xl mx-auto px-4 md:px-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Adopté par des milliers d'entrepreneurs</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Découvrez comment StockFlow transforme le quotidien des commerçants à travers le continent.</p>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Découvrez comment StockFlow AF transforme le quotidien des commerçants à travers le continent.</p>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8">
@@ -18,7 +18,7 @@ export function Testimonials() {
               <Star size={20} fill="currentColor" />
               <Star size={20} fill="currentColor" />
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 italic">"Avant StockFlow, je perdais des heures à faire mon inventaire chaque semaine. Maintenant, tout est automatisé et je sais exactement quand recommander mes articles les plus vendus."</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 italic">"Avant StockFlow AF, je perdais des heures à faire mon inventaire chaque semaine. Maintenant, tout est automatisé et je sais exactement quand recommander mes articles les plus vendus."</p>
             <div className="flex flex-col md:flex-row items-center gap-4">
               <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center font-bold text-xl shrink-0">A</div>
               <div>
@@ -36,7 +36,7 @@ export function Testimonials() {
               <Star size={20} fill="currentColor" />
               <Star size={20} fill="currentColor" />
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 italic">"La gestion des dates de péremption était un cauchemar. Les alertes de StockFlow nous ont fait économiser des milliers de francs CFA en évitant les pertes de médicaments."</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 italic">"La gestion des dates de péremption était un cauchemar. Les alertes de StockFlow AF nous ont fait économiser des milliers de francs CFA en évitant les pertes de médicaments."</p>
             <div className="flex flex-col md:flex-row items-center gap-4">
               <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-xl shrink-0">K</div>
               <div>

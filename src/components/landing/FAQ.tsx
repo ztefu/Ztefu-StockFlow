@@ -12,8 +12,8 @@ export function FAQ() {
 
   const faqs = [
     {
-      question: "Dois-je avoir une connexion internet pour utiliser StockFlow ?",
-      answer: "StockFlow nécessite une connexion internet pour synchroniser vos données en temps réel sur tous vos appareils. Cependant, une application mobile avec mode hors-ligne basique est en cours de développement."
+      question: "Dois-je avoir une connexion internet pour utiliser StockFlow AF ?",
+      answer: "StockFlow AF nécessite une connexion internet pour synchroniser vos données en temps réel sur tous vos appareils. Cependant, une application mobile avec mode hors-ligne basique est en cours de développement."
     },
     {
       question: "Mes données sont-elles sécurisées ?",
@@ -30,7 +30,7 @@ export function FAQ() {
       <div className="max-w-7xl mx-auto px-4 md:px-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Questions fréquentes</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Tout ce que vous devez savoir sur StockFlow.</p>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Tout ce que vous devez savoir sur StockFlow AF.</p>
         </div>
         
         <div className="max-w-3xl mx-auto space-y-4">

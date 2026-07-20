@@ -33,7 +33,7 @@ export function Navbar() {
       <div className="flex justify-between items-center w-full px-4 md:px-10 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
           <Logo size="sm" />
-          <span className="text-xl font-bold text-gray-900 dark:text-white">StockFlow</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-white">StockFlow AF</span>
         </div>
         
         <div className="hidden md:flex items-center gap-6">

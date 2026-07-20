@@ -65,7 +65,7 @@ export default function ConfirmClient() {
       <div className="w-full max-w-md bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-8">
           <Logo size="md" />
-          <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">StockFlow</span>
+          <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">StockFlow AF</span>
         </div>
 
         {status === "idle" && (
@@ -78,7 +78,7 @@ export default function ConfirmClient() {
                 Invitation reçue
               </h1>
               <p className="text-gray-500 text-sm">
-                Vous avez été invité à rejoindre StockFlow. Cliquez sur le bouton ci-dessous pour valider votre compte.
+                Vous avez été invité à rejoindre StockFlow AF. Cliquez sur le bouton ci-dessous pour valider votre compte.
               </p>
             </div>
             <button

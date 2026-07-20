@@ -175,7 +175,7 @@ export function Sidebar({ className, onClose }: SidebarProps) {
       <div className="p-6 flex flex-col flex-1 min-h-0">
         <div className="flex items-center gap-2 mb-8 shrink-0">
           <Logo size="sm" />
-          <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">StockFlow</span>
+          <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">StockFlow AF</span>
         </div>
 
         <div className="relative mb-6 shrink-0">

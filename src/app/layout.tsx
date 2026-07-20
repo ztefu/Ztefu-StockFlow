@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StockFlow",
+  title: "StockFlow AF",
   description: "Application de gestion de stocks",
 };
 
