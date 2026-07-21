@@ -24,9 +24,10 @@ export async function GET(request: Request) {
       }
     } else {
       console.error("Auth callback error:", error)
+      return NextResponse.redirect(`${origin}/login?error=true&message=` + encodeURIComponent(error.message || "Le lien est invalide ou a expiré."))
     }
   }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=true&message=` + encodeURIComponent("Lien d'invitation invalide ou expiré."))
+  // Si on arrive ici, c'est qu'il n'y a pas de code dans l'URL.
+  return NextResponse.redirect(`${origin}/login?error=true&message=` + encodeURIComponent("Lien manquant ou invalide. Essayez de copier-coller le lien dans votre navigateur."))
 }

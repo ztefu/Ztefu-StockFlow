@@ -142,9 +142,11 @@ export async function signup(formData: FormData) {
   }
 }
 
-export async function verifyOTP(email: string, token: string) {
+import { EmailOtpType } from '@supabase/supabase-js'
+
+export async function verifyOTP(email: string, token: string, type: EmailOtpType = 'signup') {
   const supabase = await createClient()
-  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type })
   
   if (error) {
     return { success: false, error: error.message }

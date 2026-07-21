@@ -12,19 +12,14 @@ export async function resetPassword(formData: FormData) {
 
   const supabase = await createClient()
 
-  // Envoyer l'email de réinitialisation
-  // Rediriger vers /auth/callback qui gérera l'échange de token et redirigera vers /update-password
-  const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/update-password`
-  
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo,
-  })
+  // Envoyer l'email de réinitialisation avec un code OTP (6 chiffres)
+  const { error } = await supabase.auth.resetPasswordForEmail(email)
 
   if (error) {
     console.error("Erreur de réinitialisation de mot de passe:", error)
     redirect('/forgot-password?error=true&message=' + encodeURIComponent(error.message))
   }
 
-  // Rediriger avec un message de succès
-  redirect('/forgot-password?message=' + encodeURIComponent('Un lien de réinitialisation a été envoyé à votre adresse email.'))
+  // Rediriger vers la page de vérification OTP avec le type 'recovery'
+  redirect(`/auth/verify?email=${encodeURIComponent(email)}&type=recovery`)
 }

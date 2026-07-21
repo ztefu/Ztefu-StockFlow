@@ -13,6 +13,7 @@ export default function VerifyClient() {
   const supabase = createClient();
   
   const email = searchParams.get("email");
+  const type = searchParams.get("type") || "signup";
   const [code, setCode] = useState(["", "", "", "", "", "", "", ""]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -75,18 +76,20 @@ export default function VerifyClient() {
     try {
       // Appel de l'action serveur pour vérifier l'OTP afin de préserver le cookie PKCE (code_verifier)
       const { verifyOTP } = await import("@/app/login/actions");
-      const result = await verifyOTP(email, fullCode);
+      const result = await verifyOTP(email, fullCode, type as any);
 
       if (!result.success) {
         throw new Error(result.error);
       }
 
       setStatus("success");
-      toast.success("Compte vérifié avec succès !");
+      toast.success("Code vérifié avec succès !");
       
       const plan = searchParams.get("plan");
       setTimeout(() => {
-        if (plan === "Pro" || plan === "Business") {
+        if (type === "recovery") {
+          router.push("/update-password");
+        } else if (plan === "Pro" || plan === "Business") {
           router.push("/settings#billing");
         } else {
           router.push("/dashboard");
@@ -122,10 +125,10 @@ export default function VerifyClient() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Vérifiez votre e-mail
+                {type === "recovery" ? "Réinitialisation du mot de passe" : "Vérifiez votre e-mail"}
               </h1>
               <p className="text-gray-500 text-sm">
-                Un code à 8 chiffres a été envoyé à <strong>{email}</strong>. Saisissez-le ci-dessous.
+                Un code à 8 chiffres a été envoyé à <strong>{email}</strong>. Saisissez-le ci-dessous {type === "recovery" ? "pour créer un nouveau mot de passe." : "pour confirmer votre inscription."}
               </p>
             </div>
             
