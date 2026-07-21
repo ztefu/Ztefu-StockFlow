@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Save, Upload, MapPin, Building, Mail, Phone, Globe, Clock, Banknote, Settings } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Save, Upload, MapPin, Building, Mail, Phone, Globe, Clock, Banknote, Settings, CreditCard, ShieldCheck, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Settings {
   id: string;
@@ -17,6 +17,12 @@ interface Settings {
   language: string;
   timezone: string;
   logo_url?: string | null;
+  subscription_plan?: string;
+  subscription_status?: string;
+  usage?: {
+    users: number;
+    products: number;
+  };
 }
 
 interface SettingsClientProps {
@@ -26,6 +32,7 @@ interface SettingsClientProps {
 export function SettingsClient({ initialSettings }: SettingsClientProps) {
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -41,6 +48,23 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
     timezone: "Africa/Douala",
     logo_url: null
   });
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const plan = searchParams.get('plan');
+
+    if (paymentStatus === 'success') {
+      toast.success(`Félicitations ! Vous êtes maintenant sur le plan ${plan}.`);
+      router.replace('/settings'); // Nettoyer l'URL
+      router.refresh(); // Recharger les données
+    } else if (paymentStatus === 'failed') {
+      toast.error('Le paiement a été annulé ou a échoué.');
+      router.replace('/settings');
+    } else if (paymentStatus === 'error') {
+      toast.error('Une erreur est survenue lors de la validation du paiement.');
+      router.replace('/settings');
+    }
+  }, [searchParams, router]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -118,6 +142,28 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
       toast.error("Erreur lors de la sauvegarde.", { id: toastId });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleUpgrade = async (plan: string, price: number) => {
+    const toastId = toast.loading("Génération du lien de paiement...");
+    try {
+      // Appel à l'API Campay
+      const res = await fetch('/api/billing/campay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, price })
+      });
+      const data = await res.json();
+      
+      if (data.link) {
+        window.location.href = data.link;
+      } else {
+        throw new Error(data.details ? JSON.stringify(data.details) : data.error || "Lien de paiement introuvable");
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(`Erreur de paiement: ${error.message}`, { id: toastId });
     }
   };
 
@@ -301,6 +347,161 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                   <option value="Africa/Dakar">Africa/Dakar (GMT)</option>
                   <option value="Africa/Douala">Africa/Douala (GMT+1)</option>
                 </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Abonnement et Facturation */}
+        <div id="billing" className="bg-white dark:bg-dark-surface p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 scroll-mt-6">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-500/10 flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-green-600 dark:text-green-500" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Abonnement & Facturation</h3>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
+              <p className="text-sm text-gray-500 mb-2">Plan actuel</p>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">{settings.subscription_plan || 'Gratuit'}</span>
+                {settings.subscription_status === 'Actif' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">
+                    <ShieldCheck className="w-3 h-3" />
+                    Actif
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                {settings.subscription_plan === 'Gratuit' 
+                  ? 'Limité à 50 produits et 1 utilisateur. Passez à la vitesse supérieure.'
+                  : settings.subscription_plan === 'Pro' 
+                    ? 'Vous bénéficiez de fonctionnalités premium avec des limites généreuses.'
+                    : 'Vous bénéficiez de toutes les fonctionnalités premium en illimité.'}
+              </p>
+
+              {/* Statistiques d'utilisation (uniquement pour Gratuit et Pro) */}
+              {(settings.subscription_plan === 'Gratuit' || settings.subscription_plan === 'Pro') && settings.usage && (
+                <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">Consommation</h4>
+                  
+                  {/* Produits */}
+                  <div>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="text-gray-700 dark:text-gray-300">Produits</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {settings.usage.products} / {settings.subscription_plan === 'Gratuit' ? 50 : 2000}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          (settings.usage.products / (settings.subscription_plan === 'Gratuit' ? 50 : 2000)) > 0.8 
+                            ? 'bg-red-500' 
+                            : 'bg-primary'
+                        }`}
+                        style={{ width: `${Math.min(100, (settings.usage.products / (settings.subscription_plan === 'Gratuit' ? 50 : 2000)) * 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Utilisateurs */}
+                  <div>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="text-gray-700 dark:text-gray-300">Utilisateurs</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {settings.usage.users} / {settings.subscription_plan === 'Gratuit' ? 1 : 5}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          (settings.usage.users / (settings.subscription_plan === 'Gratuit' ? 1 : 5)) >= 1 
+                            ? 'bg-red-500' 
+                            : 'bg-primary'
+                        }`}
+                        style={{ width: `${Math.min(100, (settings.usage.users / (settings.subscription_plan === 'Gratuit' ? 1 : 5)) * 100)}%` }}
+                      ></div>
+                    </div>
+                    {(settings.subscription_plan === 'Gratuit' && settings.usage.users >= 1) && (
+                      <p className="text-xs text-red-500 mt-2">Limite atteinte. Passez au plan Pro pour ajouter votre équipe.</p>
+                    )}
+                    {(settings.subscription_plan === 'Pro' && settings.usage.users >= 5) && (
+                      <p className="text-xs text-red-500 mt-2">Limite atteinte. Passez au plan Business.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="lg:col-span-2 grid sm:grid-cols-2 gap-4">
+              {/* Pro Plan */}
+              <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:border-primary transition-colors flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h4 className="font-bold text-gray-900 dark:text-white">Plan Pro</h4>
+                    <p className="text-sm text-gray-500">Jusqu'à 2000 produits</p>
+                  </div>
+                  <span className="text-lg font-bold text-primary">5000 XAF<span className="text-xs text-gray-500">/mois</span></span>
+                </div>
+                
+                <ul className="space-y-3 mb-6 text-sm text-gray-600 dark:text-gray-400">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Jusqu'à 5 utilisateurs</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Alertes par SMS & Email</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Support prioritaire</span>
+                  </li>
+                </ul>
+
+                <button 
+                  onClick={() => handleUpgrade('Pro', 5000)}
+                  disabled={settings.subscription_plan === 'Pro' || settings.subscription_plan === 'Business'}
+                  className="mt-auto w-full py-2 bg-primary hover:bg-primary-dark disabled:bg-gray-200 disabled:text-gray-500 disabled:dark:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  {settings.subscription_plan === 'Pro' ? 'Plan Actuel' : 'Souscrire'}
+                </button>
+              </div>
+
+              {/* Business Plan */}
+              <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:border-primary transition-colors flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h4 className="font-bold text-gray-900 dark:text-white">Plan Business</h4>
+                    <p className="text-sm text-gray-500">Produits illimités</p>
+                  </div>
+                  <span className="text-lg font-bold text-primary">15000 XAF<span className="text-xs text-gray-500">/mois</span></span>
+                </div>
+
+                <ul className="space-y-3 mb-6 text-sm text-gray-600 dark:text-gray-400">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Utilisateurs illimités</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Multi-boutiques</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Accompagnement dédié</span>
+                  </li>
+                </ul>
+
+                <button 
+                  onClick={() => handleUpgrade('Business', 15000)}
+                  disabled={settings.subscription_plan === 'Business'}
+                  className="mt-auto w-full py-2 bg-gray-900 hover:bg-black disabled:bg-gray-200 disabled:text-gray-500 disabled:dark:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  {settings.subscription_plan === 'Business' ? 'Plan Actuel' : 'Souscrire'}
+                </button>
               </div>
             </div>
           </div>

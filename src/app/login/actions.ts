@@ -7,6 +7,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 
 function translateError(errorMsg: string) {
+  if (typeof errorMsg !== 'string') return 'Erreur inconnue de la part du serveur.';
   if (errorMsg.includes('Invalid login credentials')) return 'Identifiants invalides ou incorrects.';
   if (errorMsg.includes('User already registered')) return 'Un compte existe déjà avec cette adresse email.';
   if (errorMsg.includes('Password should be at least')) return 'Le mot de passe doit contenir au moins 6 caractères.';
@@ -25,6 +26,9 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
+    if (error.message.includes('Email not confirmed')) {
+      redirect(`/auth/verify?email=${encodeURIComponent(data.email)}`)
+    }
     redirect('/login?error=true&message=' + encodeURIComponent(translateError(error.message)))
   }
 
@@ -47,11 +51,19 @@ export async function signup(formData: FormData) {
 
   const companyName = formData.get('company_name') as string;
   const fullName = formData.get('full_name') as string;
+  const email = formData.get('email') as string;
+  
+  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
+  const isSuperAdmin = adminEmails.includes(email.toLowerCase());
   
   // 1. Créer la compagnie en mode Admin pour récupérer l'ID (contourne RLS)
   const { data: company, error: companyError } = await supabaseAdmin
     .from('companies')
-    .insert([{ name: companyName }])
+    .insert([{ 
+      name: companyName,
+      subscription_plan: isSuperAdmin ? 'Business' : 'Gratuit',
+      subscription_status: 'Actif'
+    }])
     .select('id')
     .single();
 
@@ -76,7 +88,7 @@ export async function signup(formData: FormData) {
   const origin = `${protocol}://${host}`;
 
   const data = {
-    email: formData.get('email') as string,
+    email,
     password: formData.get('password') as string,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
@@ -91,14 +103,19 @@ export async function signup(formData: FormData) {
   const { data: signUpData, error } = await supabase.auth.signUp(data)
 
   if (error) {
-    redirect('/register?error=true&message=' + encodeURIComponent(translateError(error.message)))
+    const errorDump = {
+      name: (error as any).name,
+      message: (error as any).message,
+      status: (error as any).status,
+      stringified: String(error)
+    };
+    console.error("Erreur détaillée lors du signUp:", errorDump);
+    const msg = error.message || String(error);
+    redirect('/register?error=true&message=' + encodeURIComponent(typeof msg === 'string' ? translateError(msg) : msg))
   }
 
   // 3. Insérer le profil (si pas de trigger en place)
   if (signUpData?.user) {
-    const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
-    const isSuperAdmin = adminEmails.includes(data.email.toLowerCase());
-    
     await supabaseAdmin.from('profiles').upsert({
       id: signUpData.user.id,
       email: data.email,
@@ -112,10 +129,26 @@ export async function signup(formData: FormData) {
 
   revalidatePath('/', 'layout')
   
-  // Si Supabase demande une confirmation par email, la session n'est pas créée tout de suite
+  // Si Supabase demande une confirmation par email, on redirige vers la page de vérification OTP
+  const plan = formData.get('plan') as string || 'Gratuit';
   if (!signUpData.session) {
-    redirect('/login?error=false&message=' + encodeURIComponent("Compte créé avec succès ! Veuillez vérifier votre boîte mail pour valider votre compte avant de vous connecter."));
+    redirect(`/auth/verify?email=${encodeURIComponent(data.email)}&plan=${encodeURIComponent(plan)}`)
   } else {
-    redirect('/dashboard')
+    if (plan === 'Pro' || plan === 'Business') {
+      redirect(`/settings#billing`)
+    } else {
+      redirect('/dashboard')
+    }
   }
+}
+
+export async function verifyOTP(email: string, token: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
+  
+  if (error) {
+    return { success: false, error: error.message }
+  }
+  
+  return { success: true }
 }

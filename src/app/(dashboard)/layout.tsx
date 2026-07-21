@@ -1,5 +1,6 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
+import { AutoLogout } from "@/components/layout/AutoLogout";
 
 export default function DashboardLayout({
   children,
@@ -8,6 +9,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg">
+      <AutoLogout />
       <div className="hidden lg:block">
         <Sidebar />
       </div>

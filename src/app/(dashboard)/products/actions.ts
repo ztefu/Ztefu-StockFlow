@@ -38,12 +38,34 @@ export async function createProduct(formData: FormData) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select(`
+      company_id,
+      companies (
+        subscription_plan
+      )
+    `)
     .eq('id', userData.user.id)
     .single()
 
   if (!profile?.company_id) {
     return { error: "Aucune entreprise associée à ce profil" }
+  }
+
+  // Vérification des quotas
+  const companyInfo = Array.isArray(profile.companies) ? profile.companies[0] : profile.companies;
+  const plan = companyInfo?.subscription_plan || 'Gratuit';
+
+  if (plan === 'Gratuit' || plan === 'Pro') {
+    const limit = plan === 'Gratuit' ? 50 : 2000;
+    
+    const { count } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('company_id', profile.company_id);
+      
+    if (count !== null && count >= limit) {
+      return { error: `Limite atteinte. Le plan ${plan} vous permet de gérer jusqu'à ${limit} produits. Veuillez mettre à niveau votre abonnement.` }
+    }
   }
 
   let image_url = null

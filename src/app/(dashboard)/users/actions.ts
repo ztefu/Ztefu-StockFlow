@@ -21,6 +21,29 @@ export async function inviteUser(data: { full_name: string, email: string, phone
     throw new Error("Seul un administrateur peut inviter des utilisateurs.")
   }
 
+  // Vérification des limites du plan d'abonnement
+  const { data: company } = await supabaseServer
+    .from('companies')
+    .select('subscription_plan')
+    .eq('id', profile.company_id)
+    .single()
+    
+  const plan = company?.subscription_plan || 'Gratuit'
+  
+  const { count: usersCount } = await supabaseServer
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+    .eq('company_id', profile.company_id)
+    .eq('status', 'Actif')
+    
+  if (plan === 'Gratuit' && (usersCount || 0) >= 1) {
+    throw new Error("Le plan Gratuit est limité à 1 utilisateur (vous-même). Veuillez passer au plan Pro ou Business pour inviter votre équipe.")
+  }
+  
+  if (plan === 'Pro' && (usersCount || 0) >= 5) {
+    throw new Error("Le plan Pro est limité à 5 utilisateurs maximum. Veuillez passer au plan Business pour inviter plus de collaborateurs.")
+  }
+
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!serviceRoleKey) {
     throw new Error("La clé SUPABASE_SERVICE_ROLE_KEY n'est pas configurée dans .env.local.")

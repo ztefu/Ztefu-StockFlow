@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react'
+import Link from 'next/link'
 
 export function Pricing() {
   return (
@@ -19,11 +20,11 @@ export function Pricing() {
               <span className="text-gray-500">/mois</span>
             </div>
             <ul className="space-y-4 mb-8 w-full">
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Jusqu'à 100 produits</span></li>
+              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Jusqu'à 50 produits</span></li>
               <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">1 utilisateur</span></li>
               <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Support par email</span></li>
             </ul>
-            <button className="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white py-3 rounded-full font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mt-auto border border-gray-200 dark:border-gray-700">Commencer</button>
+            <Link href="/register?plan=Gratuit" className="w-full text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-white py-3 rounded-full font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mt-auto border border-gray-200 dark:border-gray-700 block">Commencer</Link>
           </div>
           
           {/* Pro Plan (Highlighted) */}
@@ -36,12 +37,12 @@ export function Pricing() {
               <span className="text-blue-200">/mois</span>
             </div>
             <ul className="space-y-4 mb-8 text-white w-full">
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-blue-300 shrink-0" size={20} /><span>Produits illimités</span></li>
+              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-blue-300 shrink-0" size={20} /><span>Jusqu'à 2000 produits</span></li>
               <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-blue-300 shrink-0" size={20} /><span>Jusqu'à 5 utilisateurs</span></li>
               <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-blue-300 shrink-0" size={20} /><span>Alertes par SMS & Email</span></li>
               <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-blue-300 shrink-0" size={20} /><span>Support prioritaire</span></li>
             </ul>
-            <button className="w-full bg-white text-primary py-3 rounded-full font-medium hover:bg-gray-50 transition-colors shadow-lg btn-cta mt-auto">Commencer gratuitement</button>
+            <Link href="/register?plan=Pro" className="w-full text-center bg-white text-primary py-3 rounded-full font-medium hover:bg-gray-50 transition-colors shadow-lg btn-cta mt-auto block">Souscrire au plan Pro</Link>
           </div>
           
           {/* Business Plan */}
@@ -53,12 +54,12 @@ export function Pricing() {
               <span className="text-gray-500">/mois</span>
             </div>
             <ul className="space-y-4 mb-8 w-full">
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Tout du plan Pro</span></li>
+              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Produits illimités</span></li>
               <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Utilisateurs illimités</span></li>
               <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Multi-boutiques</span></li>
               <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Accompagnement dédié</span></li>
             </ul>
-            <button className="w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white py-3 rounded-full font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors mt-auto">Contacter les ventes</button>
+            <Link href="/register?plan=Business" className="w-full text-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white py-3 rounded-full font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors mt-auto block">Souscrire au plan Business</Link>
           </div>
         </div>
       </div>
