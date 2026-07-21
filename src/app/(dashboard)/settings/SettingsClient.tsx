@@ -148,8 +148,8 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
   const handleUpgrade = async (plan: string, price: number) => {
     const toastId = toast.loading("Génération du lien de paiement...");
     try {
-      // Appel à l'API Campay
-      const res = await fetch('/api/billing/campay', {
+      // Appel à l'API Stripe
+      const res = await fetch('/api/billing/stripe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan, price })
