@@ -8,11 +8,15 @@ export default async function SettingsPage() {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData?.user) redirect('/login');
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from('profiles')
     .select('company_id, is_super_admin, companies(subscription_plan, subscription_status, subscription_end_date, billing_cycle)')
     .eq('id', userData.user.id)
     .single();
+
+  if (profile?.is_super_admin) {
+    redirect('/admin/dashboard');
+  }
 
   const companyId = profile?.company_id;
   if (!companyId) {
@@ -24,6 +28,7 @@ export default async function SettingsPage() {
           {JSON.stringify({
             userId: userData?.user?.id,
             profileData: profile,
+            error: error
           }, null, 2)}
         </pre>
       </div>
