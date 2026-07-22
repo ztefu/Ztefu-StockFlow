@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Save, Upload, MapPin, Building, Mail, Phone, Globe, Clock, Banknote, Settings, CreditCard, ShieldCheck, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +23,9 @@ interface Settings {
     users: number;
     products: number;
   };
+  subscription_end_date?: string | null;
+  billing_cycle?: string | null;
+  is_super_admin?: boolean;
 }
 
 interface SettingsClientProps {
@@ -36,22 +39,68 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
   
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnnualBilling, setIsAnnualBilling] = useState(false);
   const [settings, setSettings] = useState<Settings>(initialSettings || {
     id: "",
     company_name: "Mon Entreprise",
     registration_number: "",
     contact_email: "",
     phone: "",
-    address: "Douala, Cameroun",
-    currency: "XAF",
+    address: "",
+    currency: "XOF",
     language: "fr",
     timezone: "Africa/Douala",
-    logo_url: null
   });
+
+  const canRenew = useMemo(() => {
+    if (settings.subscription_status === 'Expiré') return true;
+    if (settings.subscription_end_date && settings.subscription_status === 'Actif') {
+      const expirationDate = new Date(settings.subscription_end_date);
+      const today = new Date();
+      const diffTime = expirationDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays <= 14;
+    }
+    return false;
+  }, [settings.subscription_end_date, settings.subscription_status]);
+
+  useEffect(() => {
+    // Vérification de l'approche de la date d'expiration
+    if (settings.subscription_end_date && settings.subscription_status === 'Actif' && !settings.is_super_admin) {
+      const expirationDate = new Date(settings.subscription_end_date);
+      const today = new Date();
+      const diffTime = expirationDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      // Si c'est un abonnement mensuel et expiré dans <= 5 jours
+      // Si c'est un abonnement annuel et expiré dans <= 14 jours
+      const isMonthlyWarning = settings.billing_cycle !== 'annual' && diffDays <= 5 && diffDays > 0;
+      const isAnnualWarning = settings.billing_cycle === 'annual' && diffDays <= 14 && diffDays > 0;
+
+      if (isMonthlyWarning || isAnnualWarning) {
+        toast('Attention : Votre abonnement expire dans ' + diffDays + ' jour(s). Pensez à le renouveler pour éviter toute interruption.', {
+          icon: '⚠️',
+          duration: 10000,
+          style: {
+            background: '#FFF3CD',
+            color: '#856404',
+            border: '1px solid #FFEEBA',
+          },
+        });
+      }
+    }
+  }, [settings.subscription_end_date, settings.subscription_status, settings.billing_cycle, settings.is_super_admin]);
 
   useEffect(() => {
     const paymentStatus = searchParams.get('payment');
     const plan = searchParams.get('plan');
+    const cycle = searchParams.get('cycle');
+
+    if (cycle === 'annual') {
+      setIsAnnualBilling(true);
+    } else if (cycle === 'monthly') {
+      setIsAnnualBilling(false);
+    }
 
     if (paymentStatus === 'success') {
       toast.success(`Félicitations ! Vous êtes maintenant sur le plan ${plan}.`);
@@ -145,25 +194,25 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
     }
   };
 
-  const handleUpgrade = async (plan: string, price: number) => {
+  const handleUpgrade = async (plan: string, price: number, cycle: 'monthly' | 'annual' = 'monthly') => {
     const toastId = toast.loading("Génération du lien de paiement...");
     try {
       // Appel à l'API Stripe
       const res = await fetch('/api/billing/stripe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, price })
+        body: JSON.stringify({ plan, price, cycle })
       });
       const data = await res.json();
       
       if (data.link) {
         window.location.href = data.link;
       } else {
-        throw new Error(data.details ? JSON.stringify(data.details) : data.error || "Lien de paiement introuvable");
+        toast.error("Impossible de générer le lien de paiement", { id: toastId });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      toast.error(`Erreur de paiement: ${error.message}`, { id: toastId });
+      toast.error("Erreur de connexion au serveur", { id: toastId });
     }
   };
 
@@ -352,7 +401,8 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
           </div>
         </div>
 
-        {/* Abonnement et Facturation */}
+        {/* Abonnement et Facturation - Masqué pour le Super Admin */}
+        {!settings.is_super_admin && (
         <div id="billing" className="bg-white dark:bg-dark-surface p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 scroll-mt-6">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-500/10 flex items-center justify-center">
@@ -364,12 +414,25 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
               <p className="text-sm text-gray-500 mb-2">Plan actuel</p>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">{settings.subscription_plan || 'Gratuit'}</span>
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {settings.subscription_plan || 'Gratuit'}
+                  {settings.subscription_plan !== 'Gratuit' && (
+                    <span className="text-sm text-gray-500 font-normal ml-2">
+                      ({settings.billing_cycle === 'annual' ? 'Annuel' : 'Mensuel'})
+                    </span>
+                  )}
+                </span>
                 {settings.subscription_status === 'Actif' && (
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">
                     <ShieldCheck className="w-3 h-3" />
                     Actif
+                  </span>
+                )}
+                {settings.subscription_status === 'Expiré' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 animate-pulse">
+                    <CheckCircle className="w-3 h-3" />
+                    Expiré
                   </span>
                 )}
               </div>
@@ -380,6 +443,26 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                     ? 'Vous bénéficiez de fonctionnalités premium avec des limites généreuses.'
                     : 'Vous bénéficiez de toutes les fonctionnalités premium en illimité.'}
               </p>
+
+              {settings.subscription_plan !== 'Gratuit' && (
+                <div className={`mb-6 p-3 rounded-lg border ${settings.subscription_status === 'Expiré' ? 'bg-red-50 border-red-200 dark:bg-red-900/10 dark:border-red-900/30' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date d'expiration</p>
+                  <p className={`font-medium ${settings.subscription_status === 'Expiré' ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+                    {settings.subscription_end_date ? (
+                      <>
+                        {new Date(settings.subscription_end_date).toLocaleDateString('fr-FR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                        {settings.billing_cycle === 'annual' ? ' (Cycle Annuel)' : ' (Cycle Mensuel)'}
+                      </>
+                    ) : (
+                      'Non définie (Compte existant)'
+                    )}
+                  </p>
+                </div>
+              )}
 
               {/* Statistiques d'utilisation (uniquement pour Gratuit et Pro) */}
               {(settings.subscription_plan === 'Gratuit' || settings.subscription_plan === 'Pro') && settings.usage && (
@@ -435,15 +518,34 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
               )}
             </div>
 
-            <div className="lg:col-span-2 grid sm:grid-cols-2 gap-4">
+            <div className="lg:col-span-2 flex flex-col">
+              {/* Toggle Mensuel/Annuel pour la mise à niveau */}
+              <div className="flex items-center justify-end gap-3 mb-6">
+                <span className={`text-sm font-medium ${!isAnnualBilling ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>Mensuel</span>
+                <button 
+                  onClick={() => setIsAnnualBilling(!isAnnualBilling)}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAnnualBilling ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-medium ${isAnnualBilling ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>Annuel</span>
+                  <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold px-2 py-0.5 rounded-full">-20%</span>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
               {/* Pro Plan */}
-              <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:border-primary transition-colors flex flex-col">
+              <div className={`border rounded-xl p-5 hover:border-primary transition-colors flex flex-col ${settings.subscription_plan === 'Pro' ? 'border-primary ring-1 ring-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-gray-700'}`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h4 className="font-bold text-gray-900 dark:text-white">Plan Pro</h4>
                     <p className="text-sm text-gray-500">Jusqu'à 2000 produits</p>
                   </div>
-                  <span className="text-lg font-bold text-primary">5000 XAF<span className="text-xs text-gray-500">/mois</span></span>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-primary">{isAnnualBilling ? '4 000' : '5 000'} XAF<span className="text-xs text-gray-500">/mois</span></span>
+                    {isAnnualBilling && <div className="text-xs text-gray-500 mt-1">Facturé 48 000 XAF/an</div>}
+                  </div>
                 </div>
                 
                 <ul className="space-y-3 mb-6 text-sm text-gray-600 dark:text-gray-400">
@@ -462,22 +564,27 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                 </ul>
 
                 <button 
-                  onClick={() => handleUpgrade('Pro', 5000)}
-                  disabled={settings.subscription_plan === 'Pro' || settings.subscription_plan === 'Business'}
+                  onClick={() => handleUpgrade('Pro', isAnnualBilling ? 48000 : 5000, isAnnualBilling ? 'annual' : 'monthly')}
+                  disabled={(settings.subscription_plan === 'Pro' && !canRenew) || settings.subscription_plan === 'Business'}
                   className="mt-auto w-full py-2 bg-primary hover:bg-primary-dark disabled:bg-gray-200 disabled:text-gray-500 disabled:dark:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors"
                 >
-                  {settings.subscription_plan === 'Pro' ? 'Plan Actuel' : 'Souscrire'}
+                  {settings.subscription_plan === 'Pro' 
+                    ? (canRenew ? 'Renouveler' : 'Plan Actuel') 
+                    : 'Souscrire'}
                 </button>
               </div>
 
               {/* Business Plan */}
-              <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:border-primary transition-colors flex flex-col">
+              <div className={`border rounded-xl p-5 hover:border-primary transition-colors flex flex-col ${settings.subscription_plan === 'Business' ? 'border-primary ring-1 ring-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-gray-700'}`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h4 className="font-bold text-gray-900 dark:text-white">Plan Business</h4>
                     <p className="text-sm text-gray-500">Produits illimités</p>
                   </div>
-                  <span className="text-lg font-bold text-primary">15000 XAF<span className="text-xs text-gray-500">/mois</span></span>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-primary">{isAnnualBilling ? '12 000' : '15 000'} XAF<span className="text-xs text-gray-500">/mois</span></span>
+                    {isAnnualBilling && <div className="text-xs text-gray-500 mt-1">Facturé 144 000 XAF/an</div>}
+                  </div>
                 </div>
 
                 <ul className="space-y-3 mb-6 text-sm text-gray-600 dark:text-gray-400">
@@ -496,16 +603,20 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                 </ul>
 
                 <button 
-                  onClick={() => handleUpgrade('Business', 15000)}
-                  disabled={settings.subscription_plan === 'Business'}
-                  className="mt-auto w-full py-2 bg-gray-900 hover:bg-black disabled:bg-gray-200 disabled:text-gray-500 disabled:dark:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 text-white rounded-lg text-sm font-medium transition-colors"
+                  onClick={() => handleUpgrade('Business', isAnnualBilling ? 144000 : 15000, isAnnualBilling ? 'annual' : 'monthly')}
+                  disabled={settings.subscription_plan === 'Business' && !canRenew}
+                  className="mt-auto w-full py-2 bg-primary hover:bg-primary-dark disabled:bg-gray-200 disabled:text-gray-500 disabled:dark:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors"
                 >
-                  {settings.subscription_plan === 'Business' ? 'Plan Actuel' : 'Souscrire'}
+                  {settings.subscription_plan === 'Business' 
+                    ? (canRenew ? 'Renouveler' : 'Plan Actuel') 
+                    : 'Souscrire'}
                 </button>
+              </div>
               </div>
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

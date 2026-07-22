@@ -10,7 +10,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id, companies(subscription_plan, subscription_status)')
+    .select('company_id, is_super_admin, companies(subscription_plan, subscription_status, subscription_end_date, billing_cycle)')
     .eq('id', userData.user.id)
     .single();
 
@@ -24,8 +24,6 @@ export default async function SettingsPage() {
           {JSON.stringify({
             userId: userData?.user?.id,
             profileData: profile,
-            // (Note: we can't easily capture the error from the above await without a try/catch, 
-            // but if profile is null, it means no row was returned)
           }, null, 2)}
         </pre>
       </div>
@@ -52,10 +50,16 @@ export default async function SettingsPage() {
     .select('*', { count: 'exact', head: true })
     .eq('company_id', companyId);
 
+  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || ['bntowo88@gmail.com'];
+  const isSuperAdmin = profile?.is_super_admin || (userData.user.email && adminEmails.includes(userData.user.email.toLowerCase()));
+
   const enrichedSettings = {
     ...(settings || {}),
     subscription_plan: companyInfo?.subscription_plan || 'Gratuit',
     subscription_status: companyInfo?.subscription_status || 'Actif',
+    subscription_end_date: companyInfo?.subscription_end_date || null,
+    billing_cycle: companyInfo?.billing_cycle || null,
+    is_super_admin: isSuperAdmin,
     usage: {
       users: usersCount || 0,
       products: productsCount || 0

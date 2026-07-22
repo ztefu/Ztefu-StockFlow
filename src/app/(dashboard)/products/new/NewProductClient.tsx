@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Upload, QrCode, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { createProduct } from "../actions";
 import { QRCodeSVG } from "qrcode.react";
+import { createClient } from "@/lib/supabase/client";
 
 interface Category {
   id: string;
@@ -15,10 +16,42 @@ interface Category {
 
 export default function NewProductClient({ categories }: { categories: Category[] }) {
   const router = useRouter();
+  const supabase = createClient();
   const [isPending, startTransition] = useTransition();
   const [sku, setSku] = useState("");
+  const [productName, setProductName] = useState("");
+  const [description, setDescription] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Nouveaux états pour l'auto-complétion
+  const [globalSuggestions, setGlobalSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (productName.length >= 3 && showSuggestions) {
+        const { data } = await supabase
+          .from('products')
+          .select('*')
+          .is('company_id', null)
+          .ilike('name', `%${productName}%`)
+          .limit(5);
+        setGlobalSuggestions(data || []);
+      } else {
+        setGlobalSuggestions([]);
+      }
+    };
+    const timeout = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timeout);
+  }, [productName, showSuggestions]);
+
+  const selectSuggestion = (suggestion: any) => {
+    setProductName(suggestion.name);
+    setSku(suggestion.sku || '');
+    setDescription(suggestion.description || '');
+    setShowSuggestions(false);
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -91,15 +124,50 @@ export default function NewProductClient({ categories }: { categories: Category[
           <div className="bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Informations Générales</h3>
             <div className="space-y-4">
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom du produit *</label>
                 <input 
                   type="text" 
                   name="name"
                   required
+                  value={productName}
+                  onChange={(e) => {
+                    setProductName(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   placeholder="Ex: Ciment Dangote 42.5R"
                   className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors"
                 />
+                
+                {showSuggestions && globalSuggestions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden">
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50 dark:bg-gray-900/50">Suggestions du catalogue global</div>
+                    <ul className="max-h-48 overflow-y-auto">
+                      {globalSuggestions.map(suggestion => (
+                        <li 
+                          key={suggestion.id} 
+                          className="px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center transition-colors"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            selectSuggestion(suggestion);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            {suggestion.image_url ? (
+                              <img src={suggestion.image_url} alt="" className="w-6 h-6 rounded object-cover" />
+                            ) : (
+                              <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-800" />
+                            )}
+                            <span className="font-medium text-gray-900 dark:text-white">{suggestion.name}</span>
+                          </div>
+                          <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">Cloner</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,6 +199,8 @@ export default function NewProductClient({ categories }: { categories: Category[
                 <textarea 
                   name="description"
                   rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   placeholder="Détails du produit..."
                   className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors resize-none"
                 ></textarea>

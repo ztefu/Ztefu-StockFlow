@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 
 export async function POST(request: Request) {
   try {
-    const { plan, price } = await request.json();
+    const { plan, price, cycle = 'monthly' } = await request.json();
 
     const supabase = await createClient();
     const { data: userData } = await supabase.auth.getUser();
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       console.warn("STRIPE_SECRET_KEY n'est pas configuré. Utilisation d'un lien mocké.");
       const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
       return NextResponse.json({ 
-        link: `${APP_URL}/api/billing/callback?session_id=mock_${profile.company_id}_${plan}` 
+        link: `${APP_URL}/api/billing/callback?session_id=mock_${profile.company_id}_${plan}_${cycle}` 
       });
     }
 
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: profile.email,
-      client_reference_id: `${profile.company_id}_${plan}`,
+      client_reference_id: `${profile.company_id}_${plan}_${cycle}`,
       line_items: [
         {
           price_data: {

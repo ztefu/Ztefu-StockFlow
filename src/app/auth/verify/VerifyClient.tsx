@@ -86,11 +86,12 @@ export default function VerifyClient() {
       toast.success("Code vérifié avec succès !");
       
       const plan = searchParams.get("plan");
+      const cycle = searchParams.get("cycle") || "monthly";
       setTimeout(() => {
         if (type === "recovery") {
           router.push("/update-password");
         } else if (plan === "Pro" || plan === "Business") {
-          router.push("/settings#billing");
+          router.push(`/settings?plan=${plan}&cycle=${cycle}#billing`);
         } else {
           router.push("/dashboard");
         }

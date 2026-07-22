@@ -5,12 +5,13 @@ import { Logo } from '@/components/ui/logo'
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string; plan?: string }>
+  searchParams: Promise<{ error?: string; message?: string; plan?: string; cycle?: string }>
 }) {
   const resolvedParams = await searchParams
   const error = resolvedParams.error === 'true'
   const message = resolvedParams.message
   const plan = resolvedParams.plan || 'Gratuit'
+  const cycle = resolvedParams.cycle || 'monthly'
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 relative overflow-hidden">
@@ -52,6 +53,7 @@ export default async function RegisterPage({
 
         <form className="space-y-4">
           <input type="hidden" name="plan" value={plan} />
+          <input type="hidden" name="cycle" value={cycle} />
           
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">

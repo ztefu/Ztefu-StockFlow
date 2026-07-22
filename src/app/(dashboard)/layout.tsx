@@ -1,14 +1,43 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { AutoLogout } from "@/components/layout/AutoLogout";
+import { RoleGuard } from "@/components/layout/RoleGuard";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id, is_super_admin')
+    .eq('id', user.id)
+    .single();
+
+  if (profile?.company_id && !profile.is_super_admin) {
+    const { data: company } = await supabase
+      .from('companies')
+      .select('subscription_status')
+      .eq('id', profile.company_id)
+      .single();
+
+    if (company?.subscription_status === 'Suspendu') {
+      redirect('/suspended');
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg">
+      <RoleGuard />
       <AutoLogout />
       <div className="hidden lg:block">
         <Sidebar />

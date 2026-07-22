@@ -32,8 +32,14 @@ export async function login(formData: FormData) {
     redirect('/login?error=true&message=' + encodeURIComponent(translateError(error.message)))
   }
 
+  const { data: profile } = await supabase.from('profiles').select('is_super_admin').eq('id', (await supabase.auth.getUser()).data.user?.id).single();
+
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  if (profile?.is_super_admin) {
+    redirect('/admin/dashboard')
+  } else {
+    redirect('/dashboard')
+  }
 }
 
 export async function signup(formData: FormData) {
@@ -131,11 +137,12 @@ export async function signup(formData: FormData) {
   
   // Si Supabase demande une confirmation par email, on redirige vers la page de vérification OTP
   const plan = formData.get('plan') as string || 'Gratuit';
+  const cycle = formData.get('cycle') as string || 'monthly';
   if (!signUpData.session) {
-    redirect(`/auth/verify?email=${encodeURIComponent(data.email)}&plan=${encodeURIComponent(plan)}`)
+    redirect(`/auth/verify?email=${encodeURIComponent(data.email)}&plan=${encodeURIComponent(plan)}&cycle=${encodeURIComponent(cycle)}`)
   } else {
     if (plan === 'Pro' || plan === 'Business') {
-      redirect(`/settings#billing`)
+      redirect(`/settings?plan=${plan}&cycle=${cycle}#billing`)
     } else {
       redirect('/dashboard')
     }

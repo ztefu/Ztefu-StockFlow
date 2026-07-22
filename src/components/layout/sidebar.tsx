@@ -23,7 +23,10 @@ import {
   LogOut,
   ChevronUp,
   MessageCircle,
-  ScanLine
+  ScanLine,
+  BarChart3,
+  Building2,
+  Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import toast from "react-hot-toast";
@@ -61,6 +64,14 @@ const menuItems = [
     items: [
       { label: "Utilisateurs", icon: Shield, href: "/users" },
       { label: "Tickets Support", icon: MessageCircle, href: "/admin/tickets" },
+    ]
+  },
+  {
+    title: "SUPER ADMIN",
+    items: [
+      { label: "SaaS Dashboard", icon: BarChart3, href: "/admin/dashboard" },
+      { label: "Entreprises", icon: Building2, href: "/admin/companies" },
+      { label: "Catalogue Global", icon: Globe, href: "/admin/catalog" },
     ]
   }
 ];
@@ -143,29 +154,51 @@ export function Sidebar({ className, onClose }: SidebarProps) {
     }
   };
 
-  const filteredMenu = menuItems.map(section => {
-    // Filter items based on super admin status and RBAC role
-    const sectionItems = section.items.filter(item => {
-      // Logic for super admin routes
-      if (item.href === "/admin/tickets") {
-        return !!user?.is_super_admin;
-      }
+  const filteredMenu = (() => {
+    let baseMenu = menuItems;
+    
+    // Si c'est un super admin, on réorganise le menu pour mettre les sections admin en haut
+    if (user?.is_super_admin) {
+      const superAdminSection = menuItems.find(s => s.title === "SUPER ADMIN");
+      const adminSection = menuItems.find(s => s.title === "ADMINISTRATION");
+      const otherSections = menuItems.filter(s => s.title !== "SUPER ADMIN" && s.title !== "ADMINISTRATION");
       
-      // Standard RBAC check
-      const role = user?.user_metadata?.role;
-      if (role && !hasPermission(role, item.href)) return false;
-      
-      return true;
-    });
+      baseMenu = [
+        ...(superAdminSection ? [superAdminSection] : []),
+        ...(adminSection ? [adminSection] : []),
+        ...otherSections
+      ];
+    }
 
-    return {
-      ...section,
-      items: sectionItems.map(item => ({
-        ...item,
-        active: pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
-      })).filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
-    };
-  }).filter(section => section.items.length > 0);
+    return baseMenu.map(section => {
+      // Déterminer si la section doit être grisée pour le super admin
+      const isClientSection = section.title !== "SUPER ADMIN" && section.title !== "ADMINISTRATION";
+      const isSectionDisabled = !!user?.is_super_admin && isClientSection;
+
+      // Filter items based on super admin status and RBAC role
+      const sectionItems = section.items.filter(item => {
+        // Logic for super admin routes
+        if (item.href === "/admin/tickets" || item.href.startsWith("/admin/")) {
+          return !!user?.is_super_admin;
+        }
+        
+        // Standard RBAC check
+        const role = user?.user_metadata?.role;
+        if (role && !hasPermission(role, item.href)) return false;
+        
+        return true;
+      });
+
+      return {
+        ...section,
+        isDisabled: isSectionDisabled,
+        items: sectionItems.map(item => ({
+          ...item,
+          active: pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
+        })).filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
+      };
+    }).filter(section => section.items.length > 0);
+  })();
 
   return (
     <aside className={cn(
@@ -200,16 +233,26 @@ export function Sidebar({ className, onClose }: SidebarProps) {
                 {section.items.map((item, j) => (
                   <li key={j}>
                     <Link 
-                      href={item.href}
-                      onClick={() => onClose && onClose()}
+                      href={section.isDisabled ? "#" : item.href}
+                      onClick={(e) => {
+                        if (section.isDisabled) {
+                          e.preventDefault();
+                          return;
+                        }
+                        onClose && onClose()
+                      }}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                        item.active 
-                          ? "bg-gray-50 text-gray-900 dark:bg-gray-800 dark:text-white" 
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
+                        section.isDisabled
+                          ? "text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed pointer-events-none"
+                          : item.active 
+                            ? "bg-gray-50 text-gray-900 dark:bg-gray-800 dark:text-white" 
+                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
                       )}
+                      tabIndex={section.isDisabled ? -1 : 0}
+                      aria-disabled={section.isDisabled}
                     >
-                      <item.icon className={cn("w-5 h-5", item.active ? "text-primary" : "")} />
+                      <item.icon className={cn("w-5 h-5", (item.active && !section.isDisabled) ? "text-primary" : "")} />
                       {item.label}
                     </Link>
                   </li>

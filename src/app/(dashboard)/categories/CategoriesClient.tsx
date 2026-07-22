@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Plus, Search, Edit, Trash2, FolderOpen, AlertTriangle } from "lucide-react";
+import { useState, useTransition, useEffect } from "react";
+import { Edit, Trash2, FolderOpen, Search, AlertTriangle, Plus } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
 import { createCategory, updateCategory, deleteCategory } from "./actions";
 
@@ -16,11 +17,39 @@ export default function CategoriesClient({ initialCategories, userRole }: { init
   const canEdit = userRole === 'Administrateur' || userRole === 'Gestionnaire';
   const [searchQuery, setSearchQuery] = useState("");
   const [isPending, startTransition] = useTransition();
+  const supabase = createClient();
   
+  const [globalSuggestions, setGlobalSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   // Form state
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryDesc, setNewCategoryDesc] = useState("");
 
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (newCategoryName.length >= 2 && showSuggestions) {
+        const { data } = await supabase
+          .from('categories')
+          .select('*')
+          .is('company_id', null)
+          .ilike('name', `%${newCategoryName}%`)
+          .limit(5);
+        setGlobalSuggestions(data || []);
+      } else {
+        setGlobalSuggestions([]);
+      }
+    };
+    const timeout = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timeout);
+  }, [newCategoryName, showSuggestions]);
+
+  const selectSuggestion = (suggestion: any) => {
+    setNewCategoryName(suggestion.name);
+    setNewCategoryDesc(suggestion.description || '');
+    setShowSuggestions(false);
+  };
+  
   // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
@@ -124,15 +153,41 @@ export default function CategoriesClient({ initialCategories, userRole }: { init
           <div className="bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md transition-all duration-200">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Nouvelle Catégorie</h3>
             <form className="space-y-4" onSubmit={handleAddCategory}>
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom de la catégorie *</label>
                 <input 
                   type="text" 
                   value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onChange={(e) => {
+                    setNewCategoryName(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   placeholder="Ex: Électronique" 
                   className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors" 
                 />
+                
+                {showSuggestions && globalSuggestions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden">
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50 dark:bg-gray-900/50">Suggestions du catalogue global</div>
+                    <ul className="max-h-48 overflow-y-auto">
+                      {globalSuggestions.map(suggestion => (
+                        <li 
+                          key={suggestion.id} 
+                          className="px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center transition-colors"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            selectSuggestion(suggestion);
+                          }}
+                        >
+                          <span className="font-medium text-gray-900 dark:text-white">{suggestion.name}</span>
+                          <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">Cloner</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>

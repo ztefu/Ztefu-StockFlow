@@ -18,12 +18,14 @@ export async function GET(request: Request) {
   try {
     let companyId = '';
     let plan = '';
+    let cycle = 'monthly';
 
     // Mode Mock (quand STRIPE_SECRET_KEY n'est pas configuré)
     if (session_id.startsWith('mock_')) {
       const parts = session_id.split('_');
       companyId = parts[1];
       plan = parts[2];
+      if (parts[3]) cycle = parts[3];
     } else {
       // Vérification réelle via l'API Stripe
       if (!process.env.STRIPE_SECRET_KEY) {
@@ -48,15 +50,41 @@ export async function GET(request: Request) {
       const parts = session.client_reference_id.split('_');
       companyId = parts[0];
       plan = parts[1];
+      if (parts[2]) cycle = parts[2];
     }
 
     if (companyId && plan) {
+      // Récupérer l'entreprise pour vérifier sa date d'expiration actuelle
+      const { data: currentCompany } = await supabase
+        .from('companies')
+        .select('subscription_end_date, subscription_status')
+        .eq('id', companyId)
+        .single();
+
+      // Calculer la date d'expiration
+      let baseDate = new Date();
+      if (currentCompany?.subscription_end_date && currentCompany.subscription_status === 'Actif') {
+        const currentEndDate = new Date(currentCompany.subscription_end_date);
+        if (currentEndDate > baseDate) {
+          baseDate = currentEndDate;
+        }
+      }
+
+      const endDate = new Date(baseDate);
+      if (cycle === 'annual') {
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      } else {
+        endDate.setMonth(endDate.getMonth() + 1);
+      }
+
       // Mettre à jour le plan de l'entreprise
       const { error } = await supabase
         .from('companies')
         .update({ 
           subscription_plan: plan,
-          subscription_status: 'Actif'
+          subscription_status: 'Actif',
+          billing_cycle: cycle,
+          subscription_end_date: endDate.toISOString()
         })
         .eq('id', companyId);
 
