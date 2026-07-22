@@ -70,8 +70,10 @@ export function Pricing() {
               <span className="text-4xl font-bold">{isAnnual ? proMonthlyEquiv : proMonthly} CFA</span>
               <span className="text-blue-200">/mois</span>
               {isAnnual && (
-                <div className="text-sm text-blue-200 mt-1 font-medium">
-                  Facturé {proAnnualTotal.toLocaleString('fr-FR')} CFA par an
+                <div className="mt-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <span className="inline-block bg-blue-900/50 px-4 py-1.5 rounded-full text-sm font-semibold text-blue-100 shadow-sm border border-blue-400/20">
+                    ✨ Facturé {proAnnualTotal.toLocaleString('fr-FR')} CFA / an
+                  </span>
                 </div>
               )}
             </div>
@@ -92,8 +94,10 @@ export function Pricing() {
               <span className="text-4xl font-bold text-gray-900 dark:text-white">{isAnnual ? businessMonthlyEquiv : businessMonthly} CFA</span>
               <span className="text-gray-500">/mois</span>
               {isAnnual && (
-                <div className="text-sm text-gray-500 mt-1 font-medium">
-                  Facturé {businessAnnualTotal.toLocaleString('fr-FR')} CFA par an
+                <div className="mt-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <span className="inline-block bg-primary/10 px-4 py-1.5 rounded-full text-sm font-semibold text-primary shadow-sm border border-primary/20">
+                    ✨ Facturé {businessAnnualTotal.toLocaleString('fr-FR')} CFA / an
+                  </span>
                 </div>
               )}
             </div>
