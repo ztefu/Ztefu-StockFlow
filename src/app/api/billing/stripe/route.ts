@@ -23,15 +23,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Entreprise non trouvée' }, { status: 404 });
     }
 
+    const APP_URL = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
     if (!process.env.STRIPE_SECRET_KEY) {
       console.warn("STRIPE_SECRET_KEY n'est pas configuré. Utilisation d'un lien mocké.");
-      const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
       return NextResponse.json({ 
         link: `${APP_URL}/api/billing/callback?session_id=mock_${profile.company_id}_${plan}_${cycle}` 
       });
     }
-
-    const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
       apiVersion: '2026-06-24.dahlia' // Use the latest compatible Stripe API version
