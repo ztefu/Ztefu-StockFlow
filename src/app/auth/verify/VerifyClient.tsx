@@ -112,7 +112,7 @@ export default function VerifyClient() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="w-full max-w-xl bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-8 text-center">
+      <div className="w-full max-w-xl bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 sm:p-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-8">
           <Logo size="md" />
           <span className="font-bold text-2xl tracking-tight text-gray-900 dark:text-white">StockFlow AF</span>
@@ -132,7 +132,7 @@ export default function VerifyClient() {
               </p>
             </div>
             
-            <div className="flex justify-center gap-1 sm:gap-2 my-8 overflow-x-auto pb-2">
+            <div className="flex justify-center gap-1 sm:gap-2 my-8">
               {code.map((digit, index) => (
                 <input
                   key={index}
@@ -143,7 +143,7 @@ export default function VerifyClient() {
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   onPaste={handlePaste}
-                  className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:text-white shrink-0"
+                  className="w-8 h-10 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:text-white shrink-0"
                 />
               ))}
             </div>

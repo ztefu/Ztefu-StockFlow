@@ -56,6 +56,11 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
+      custom_text: {
+        submit: {
+          message: "Les cartes virtuelles MTN Mobile et Orange Money sont acceptées.",
+        },
+      },
       success_url: `${APP_URL}/api/billing/callback?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${APP_URL}/settings?payment=failed`,
     });

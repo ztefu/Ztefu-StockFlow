@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight, PlayCircle, LineChart, Box, BellRing, PackageCheck, TrendingUp } from 'lucide-react'
+import { DemoVideoModal } from './DemoVideoModal'
 
 export function Hero() {
   return (
@@ -17,10 +18,7 @@ export function Hero() {
               Commencer gratuitement
               <ArrowRight size={18} />
             </Link>
-            <a href="#features" className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white px-8 py-3.5 rounded-full font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2">
-              Voir la démonstration
-              <PlayCircle size={18} />
-            </a>
+            <DemoVideoModal />
           </div>
         </div>
         
