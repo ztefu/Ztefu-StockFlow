@@ -4,6 +4,7 @@ import { AutoLogout } from "@/components/layout/AutoLogout";
 import { RoleGuard } from "@/components/layout/RoleGuard";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { SubscriptionProvider } from "@/providers/SubscriptionProvider";
 
 export default async function DashboardLayout({
   children,
@@ -23,15 +24,21 @@ export default async function DashboardLayout({
     .eq('id', user.id)
     .single();
 
+  let companyPlan = 'Gratuit';
+
   if (profile?.company_id && !profile.is_super_admin) {
     const { data: company } = await supabase
       .from('companies')
-      .select('subscription_status')
+      .select('subscription_status, subscription_plan')
       .eq('id', profile.company_id)
       .single();
 
     if (company?.subscription_status === 'Suspendu') {
       redirect('/suspended');
+    }
+    
+    if (company?.subscription_plan) {
+      companyPlan = company.subscription_plan;
     }
   }
 
@@ -39,15 +46,17 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg">
       <RoleGuard />
       <AutoLogout />
-      <div className="hidden lg:block">
-        <Sidebar />
-      </div>
-      <MobileSidebar />
-      <main className="lg:pl-64 flex flex-col min-h-screen pt-16 lg:pt-0">
-        <div className="flex-1 p-4 lg:p-8">
-          {children}
+      <SubscriptionProvider plan={companyPlan as any}>
+        <div className="hidden lg:block">
+          <Sidebar />
         </div>
-      </main>
+        <MobileSidebar />
+        <main className="lg:pl-64 flex flex-col min-h-screen pt-16 lg:pt-0">
+          <div className="flex-1 p-4 lg:p-8">
+            {children}
+          </div>
+        </main>
+      </SubscriptionProvider>
     </div>
   );
 }

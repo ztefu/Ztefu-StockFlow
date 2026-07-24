@@ -86,6 +86,7 @@ export function Sidebar({ className, onClose }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [user, setUser] = useState<any>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -118,6 +119,7 @@ export function Sidebar({ className, onClose }: SidebarProps) {
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
+    setIsLoggingOut(true);
     await supabase.auth.signOut();
     toast.success("Déconnexion réussie !");
     router.push("/login");
@@ -201,6 +203,7 @@ export function Sidebar({ className, onClose }: SidebarProps) {
   })();
 
   return (
+    <>
     <aside className={cn(
       "w-64 bg-surface dark:bg-dark-surface border-r border-gray-100 dark:border-gray-800 flex flex-col h-screen fixed left-0 top-0",
       className
@@ -360,5 +363,18 @@ export function Sidebar({ className, onClose }: SidebarProps) {
         </div>
       </div>
     </aside>
+    {isLoggingOut && (
+      <div className="fixed inset-0 z-[9999] bg-white/80 dark:bg-gray-900/80 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+        <div className="flex flex-col items-center">
+          <div className="animate-[spin_2s_linear_infinite]">
+            <Logo size="lg" color="red" />
+          </div>
+          <p className="mt-6 text-lg font-bold text-red-600 dark:text-red-500 animate-pulse">
+            Déconnexion en cours...
+          </p>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

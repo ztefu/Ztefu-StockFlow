@@ -5,12 +5,35 @@ import { Html5Qrcode } from "html5-qrcode";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Camera, StopCircle } from "lucide-react";
+import Link from "next/link";
+import { useSubscription } from "@/providers/SubscriptionProvider";
 
 export default function ScannerClient({ products }: { products: any[] }) {
   const router = useRouter();
+  const { limits } = useSubscription();
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+
+  if (!limits.hasScanner) {
+    return (
+      <div className="w-full max-w-xl mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Scanner QR Code</h1>
+        </div>
+        <div className="bg-white dark:bg-dark-surface p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 text-center flex flex-col items-center">
+          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+            <Camera className="w-8 h-8 text-gray-400" />
+          </div>
+          <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Fonctionnalité Premium</h2>
+          <p className="text-gray-500 mb-6 max-w-sm">Le scanner de QR Code n'est pas disponible dans le plan Gratuit. Passez à la version Pro pour scanner rapidement vos produits lors des mouvements de stock.</p>
+          <Link href="/settings?plan=Pro" className="px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-medium transition-all shadow-sm shadow-primary/30 active:scale-95">
+            Mettre à niveau mon plan
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const startScanner = async () => {
     try {

@@ -1,6 +1,8 @@
 import { login } from './actions'
 import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
+import { PasswordInput } from '@/components/ui/password-input'
+import { SubmitButton } from './submit-button'
 
 export default async function LoginPage({
   searchParams,
@@ -49,7 +51,7 @@ export default async function LoginPage({
           </div>
         )}
 
-        <form className="space-y-4">
+        <form className="space-y-4" action={login}>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Adresse Email
@@ -73,10 +75,9 @@ export default async function LoginPage({
                 Mot de passe oublié ?
               </Link>
             </div>
-            <input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               required
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all"
               placeholder="********"
@@ -84,12 +85,7 @@ export default async function LoginPage({
           </div>
 
           <div className="pt-2 flex flex-col gap-3">
-            <button
-              formAction={login}
-              className="w-full px-4 py-3 bg-primary hover:bg-primary-dark active:scale-[0.98] text-white rounded-xl text-sm font-semibold transition-all shadow-sm shadow-primary/30"
-            >
-              Se connecter
-            </button>
+            <SubmitButton />
           </div>
         </form>
       </div>

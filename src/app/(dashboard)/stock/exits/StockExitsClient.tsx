@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Minus, Search, AlertTriangle } from "lucide-react";
+import { Minus, Search, AlertTriangle, ArrowUpFromLine } from "lucide-react";
 import toast from "react-hot-toast";
 import { DatePicker } from "@/components/ui/date-picker";
 import { createStockExit } from "../actions";
@@ -186,7 +186,8 @@ export default function StockExitsClient({
                 />
               </div>
             </div>
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="overflow-x-auto hidden md:block">
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
@@ -222,6 +223,42 @@ export default function StockExitsClient({
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+              {exits.map((exit) => (
+                <div key={exit.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900 dark:text-white">{exit.product_name}</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">{new Date(exit.date).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 shrink-0">
+                      <ArrowUpFromLine className="w-3 h-3" />
+                      -{exit.quantity} {exit.quantity > 1 ? `${exit.unit}s` : exit.unit}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                      <p className="text-[11px] text-gray-500 mb-0.5">Motif</p>
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-300">
+                        {exit.motif || "Non défini"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-500 mb-0.5">Utilisateur</p>
+                      <p className="text-sm text-gray-900 dark:text-white truncate">{exit.user_name || "Système"}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {exits.length === 0 && (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  Aucune sortie trouvée.
+                </div>
+              )}
             </div>
           </div>
         </div>

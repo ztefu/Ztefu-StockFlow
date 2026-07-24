@@ -43,6 +43,32 @@ export async function createStockEntry(formData: FormData) {
     return { error: 'Produit non trouvé ou accès refusé.' };
   }
 
+  // Vérifier le quota de mouvements pour le plan Gratuit
+  const { data: planInfo } = await supabase
+    .from('profiles')
+    .select('companies(subscription_plan)')
+    .eq('id', user.id)
+    .single();
+
+  const companyData = Array.isArray(planInfo?.companies) ? planInfo.companies[0] : planInfo?.companies;
+  const plan = companyData?.subscription_plan || 'Gratuit';
+
+  if (plan === 'Gratuit') {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0,0,0,0);
+    
+    const { count } = await supabase
+      .from('stock_movements')
+      .select('*', { count: 'exact', head: true })
+      .eq('company_id', profile.company_id)
+      .gte('created_at', startOfMonth.toISOString());
+      
+    if (count !== null && count >= 200) {
+      return { error: 'Limite atteinte. Le plan Gratuit permet 200 mouvements maximum par mois. Passez au plan Pro.' };
+    }
+  }
+
   const { error } = await supabase
     .from('stock_movements')
     .insert([{
@@ -109,6 +135,32 @@ export async function createStockExit(formData: FormData) {
 
   if (product.stock_actuel < quantity) {
     return { error: 'Stock insuffisant pour cette sortie.' };
+  }
+
+  // Vérifier le quota de mouvements pour le plan Gratuit
+  const { data: planInfo } = await supabase
+    .from('profiles')
+    .select('companies(subscription_plan)')
+    .eq('id', user.id)
+    .single();
+
+  const companyData = Array.isArray(planInfo?.companies) ? planInfo.companies[0] : planInfo?.companies;
+  const plan = companyData?.subscription_plan || 'Gratuit';
+
+  if (plan === 'Gratuit') {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0,0,0,0);
+    
+    const { count } = await supabase
+      .from('stock_movements')
+      .select('*', { count: 'exact', head: true })
+      .eq('company_id', profile.company_id)
+      .gte('created_at', startOfMonth.toISOString());
+      
+    if (count !== null && count >= 200) {
+      return { error: 'Limite atteinte. Le plan Gratuit permet 200 mouvements maximum par mois. Passez au plan Pro.' };
+    }
   }
 
   const { error } = await supabase

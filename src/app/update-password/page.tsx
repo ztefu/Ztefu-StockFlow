@@ -1,5 +1,6 @@
 import { updatePassword } from './actions'
 import { Logo } from '@/components/ui/logo'
+import { PasswordInput } from '@/components/ui/password-input'
 
 export default async function UpdatePasswordPage({
   searchParams,
@@ -40,10 +41,9 @@ export default async function UpdatePasswordPage({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Mot de passe
             </label>
-            <input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               required
               minLength={6}
               className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
@@ -55,10 +55,9 @@ export default async function UpdatePasswordPage({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Confirmer le mot de passe
             </label>
-            <input
+            <PasswordInput
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
               required
               minLength={6}
               className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-white"

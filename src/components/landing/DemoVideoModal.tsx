@@ -64,7 +64,7 @@ export function DemoVideoModal() {
 
   return (
     <>
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes categoryScroll {
           0% { transform: translateY(30px); opacity: 0; }
           5% { transform: translateY(0); opacity: 1; }
@@ -81,7 +81,7 @@ export function DemoVideoModal() {
         .is-paused .animate-category-scroll {
           animation-play-state: paused !important;
         }
-      `}</style>
+      `}} />
       <button
         onClick={() => setIsOpen(true)}
         className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white px-8 py-3.5 rounded-full font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
@@ -96,14 +96,23 @@ export function DemoVideoModal() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           ></div>
-          <div className="relative w-full max-w-6xl bg-black rounded-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 z-30 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
-            >
-              <X size={24} />
-            </button>
-            <div className="relative w-full aspect-[4/3] md:aspect-[21/9] flex items-center justify-center bg-gray-900 min-h-[500px]">
+          <div className="relative w-full max-w-6xl flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="flex justify-end mb-3 sm:hidden z-10">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="relative w-full bg-black rounded-2xl overflow-hidden shadow-2xl">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="hidden sm:flex items-center justify-center absolute top-4 right-4 z-30 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+              <div className="relative w-full aspect-[4/3] md:aspect-[21/9] flex items-center justify-center bg-gray-900 min-h-[500px]">
               {videoUrl ? (
                 <iframe
                   className="absolute inset-0 w-full h-full"
@@ -181,8 +190,10 @@ export function DemoVideoModal() {
               )}
             </div>
           </div>
+          </div>
         </div>
       )}
     </>
   );
 }
+

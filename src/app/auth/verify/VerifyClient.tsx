@@ -173,8 +173,8 @@ export default function VerifyClient() {
           </div>
         ) : (
           <div className="space-y-6 py-4 animate-in zoom-in duration-300">
-            <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 text-green-500 rounded-full flex items-center justify-center mx-auto">
-              <Loader2 className="w-8 h-8 animate-spin" />
+            <div className="animate-bounce flex justify-center">
+              <Logo size="lg" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">

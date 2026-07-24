@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { FileText, Download, BarChart2, PieChart, TrendingUp } from "lucide-react";
 import toast from "react-hot-toast";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useSubscription } from "@/providers/SubscriptionProvider";
 
 interface Product {
   id: string;
@@ -30,6 +31,7 @@ interface ReportsClientProps {
 
 export function ReportsClient({ products, movements }: ReportsClientProps) {
   const [period, setPeriod] = useState("Cette semaine");
+  const { limits } = useSubscription();
 
   const getStartDate = () => {
     const now = new Date();
@@ -47,6 +49,11 @@ export function ReportsClient({ products, movements }: ReportsClientProps) {
   };
 
   const handleGenerate = (reportName: string) => {
+    if (!limits.hasAdvancedReports) {
+      toast.error("Les rapports avancés ne sont pas disponibles avec le plan Gratuit. Passez à la version supérieure !");
+      return;
+    }
+    
     const toastId = toast.loading(`Génération de "${reportName}"...`);
     
     try {

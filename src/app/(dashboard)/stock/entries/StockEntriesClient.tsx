@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import toast from "react-hot-toast";
 import { DatePicker } from "@/components/ui/date-picker";
 import { createStockEntry } from "../actions";
@@ -166,7 +166,8 @@ export default function StockEntriesClient({
                 />
               </div>
             </div>
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="overflow-x-auto hidden md:block">
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
@@ -198,6 +199,40 @@ export default function StockEntriesClient({
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+              {entries.map((entry) => (
+                <div key={entry.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900 dark:text-white">{entry.product_name}</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">{new Date(entry.date).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 shrink-0">
+                      <ArrowDownToLine className="w-3 h-3" />
+                      +{entry.quantity} {entry.quantity > 1 ? `${entry.unit}s` : entry.unit}
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                      <p className="text-[11px] text-gray-500 mb-0.5">Fournisseur</p>
+                      <p className="text-sm text-gray-900 dark:text-white truncate">{entry.fournisseur || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-500 mb-0.5">Utilisateur</p>
+                      <p className="text-sm text-gray-900 dark:text-white truncate">{entry.user_name || "Système"}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {entries.length === 0 && (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  Aucune entrée trouvée.
+                </div>
+              )}
             </div>
           </div>
         </div>

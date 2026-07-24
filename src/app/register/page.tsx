@@ -1,6 +1,8 @@
 import { signup } from '@/app/login/actions'
 import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
+import { PasswordInput } from '@/components/ui/password-input'
+import { SubmitButton } from '@/app/login/submit-button'
 
 export default async function RegisterPage({
   searchParams,
@@ -51,7 +53,7 @@ export default async function RegisterPage({
           </div>
         )}
 
-        <form className="space-y-4">
+        <form className="space-y-4" action={signup}>
           <input type="hidden" name="plan" value={plan} />
           <input type="hidden" name="cycle" value={cycle} />
           
@@ -101,10 +103,9 @@ export default async function RegisterPage({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Mot de passe
             </label>
-            <input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               required
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all"
               placeholder="********"
@@ -112,12 +113,7 @@ export default async function RegisterPage({
           </div>
 
           <div className="pt-2 flex flex-col gap-3">
-            <button
-              formAction={signup}
-              className="w-full px-4 py-3 bg-primary hover:bg-primary-dark active:scale-[0.98] text-white rounded-xl text-sm font-semibold transition-all shadow-sm shadow-primary/30"
-            >
-              Creer mon compte
-            </button>
+            <SubmitButton text="Créer mon compte" loadingText="Création de votre compte..." />
           </div>
         </form>
       </div>

@@ -92,7 +92,9 @@ export default function ConfirmClient() {
 
         {status === "loading" && (
           <div className="space-y-6 py-4 animate-in fade-in duration-300">
-            <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
+            <div className="animate-bounce flex justify-center">
+              <Logo size="lg" />
+            </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 Vérification en cours...

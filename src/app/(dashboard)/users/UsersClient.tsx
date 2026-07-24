@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { inviteUser, updateUser } from "./actions";
+import { useSubscription } from "@/providers/SubscriptionProvider";
 
 interface Profile {
   id: string;
@@ -24,6 +25,9 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
   const router = useRouter();
   const supabase = createClient();
   const [localUsers, setLocalUsers] = useState<Profile[]>(initialUsers);
+  
+  const { limits } = useSubscription();
+  const reachedUserLimit = localUsers.filter(u => u.status === 'Actif').length >= limits.maxUsers;
 
   // Sync with server data after router.refresh()
   useEffect(() => {
@@ -59,6 +63,11 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (reachedUserLimit) {
+      toast.error(`Limite atteinte. Votre plan permet un maximum de ${limits.maxUsers} utilisateur(s) actif(s). Passez à la version supérieure !`);
+      return;
+    }
+    
     if (!newName.trim() || !newEmail.trim() || !newRole) {
       toast.error("Veuillez remplir les champs obligatoires");
       return;
@@ -310,7 +319,8 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
                 />
               </div>
             </div>
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="overflow-x-auto hidden md:block">
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
@@ -375,6 +385,65 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+              {filteredUsers.map((user) => (
+                <div key={user.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                        {user.full_name?.charAt(0) || "U"}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{user.full_name}</h4>
+                        <p className="text-xs text-gray-500 mt-0.5">{user.role}</p>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      {user.status === "Actif" ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                          Actif
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+                          Inactif
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-4 border border-gray-100 dark:border-gray-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-xs text-gray-900 dark:text-white truncate">{user.email}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-gray-500">{user.phone || "Aucun numéro"}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-3">
+                    <button onClick={() => handleEdit(user)} className="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-gray-800 text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors text-xs font-medium">
+                      <Edit className="w-4 h-4" /> Éditer
+                    </button>
+                    {user.status === "Actif" ? (
+                      <button onClick={() => toggleUserStatus(user.id)} className="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-gray-800 text-gray-600 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors text-xs font-medium">
+                        <Ban className="w-4 h-4" /> Désactiver
+                      </button>
+                    ) : (
+                      <button onClick={() => toggleUserStatus(user.id)} className="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-gray-800 text-gray-600 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors text-xs font-medium">
+                        <CheckCircle className="w-4 h-4" /> Activer
+                      </button>
+                    )}
+                    <button onClick={() => confirmDelete(user.id)} className="flex items-center justify-center p-2 bg-white dark:bg-gray-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
             {filteredUsers.length === 0 && (
               <div className="p-8 text-center text-gray-500 text-sm">

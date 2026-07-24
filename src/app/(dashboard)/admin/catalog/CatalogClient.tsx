@@ -123,7 +123,8 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop Table Views */}
+        <div className="overflow-x-auto hidden md:block">
           {activeTab === 'products' ? (
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
@@ -210,6 +211,90 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
                 )}
               </tbody>
             </table>
+          )}
+        </div>
+
+        {/* Mobile Card Views */}
+        <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+          {activeTab === 'products' ? (
+            filteredProducts.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                Aucun produit global trouvé.
+              </div>
+            ) : (
+              filteredProducts.map((p) => (
+                <div key={p.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <Package className="w-5 h-5" />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white leading-tight">{p.name}</h4>
+                        <p className="text-xs text-gray-500 mt-1">SKU: <span className="font-mono">{p.sku || '-'}</span></p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mt-3 mb-4 border border-gray-100 dark:border-gray-700">
+                    <p className="text-[11px] text-gray-500 mb-0.5">Catégorie Globale</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {p.category?.name || '-'}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <button 
+                      onClick={() => handleDelete(p.id, 'product')}
+                      className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors text-xs font-medium"
+                    >
+                      <Trash2 className="w-4 h-4" /> Supprimer
+                    </button>
+                  </div>
+                </div>
+              ))
+            )
+          ) : (
+            filteredCategories.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 text-sm">
+                Aucune catégorie globale trouvée.
+              </div>
+            ) : (
+              filteredCategories.map((c) => (
+                <div key={c.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: c.color || '#3B82F6' }} />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white leading-tight">{c.name}</h4>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mt-3 mb-4 border border-gray-100 dark:border-gray-700">
+                    <p className="text-[11px] text-gray-500 mb-0.5">Description</p>
+                    <p className="text-sm text-gray-900 dark:text-white line-clamp-2">
+                      {c.description || '-'}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <button 
+                      onClick={() => handleDelete(c.id, 'category')}
+                      className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors text-xs font-medium"
+                    >
+                      <Trash2 className="w-4 h-4" /> Supprimer
+                    </button>
+                  </div>
+                </div>
+              ))
+            )
           )}
         </div>
       </div>

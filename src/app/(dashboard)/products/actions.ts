@@ -207,3 +207,119 @@ export async function deleteProduct(id: string) {
   revalidatePath('/products')
   return { success: true }
 }
+
+export async function importProductsCSV(productsData: any[]) {
+  const supabase = await createClient()
+
+  // Verify auth and get company_id
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { error: "Non authentifié" }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select(`
+      company_id,
+      companies (
+        subscription_plan
+      )
+    `)
+    .eq('id', userData.user.id)
+    .single()
+
+  if (!profile?.company_id) {
+    return { error: "Aucune entreprise associée à ce profil" }
+  }
+
+  // Vérification des quotas
+  const companyInfo = Array.isArray(profile.companies) ? profile.companies[0] : profile.companies;
+  const plan = companyInfo?.subscription_plan || 'Gratuit';
+
+  // L'import CSV n'est pas dispo sur Gratuit
+  if (plan === 'Gratuit') {
+    return { error: "L'import CSV n'est pas disponible sur le plan Gratuit. Passez à la version Pro !" }
+  }
+
+  if (plan === 'Pro') {
+    const limit = 2000;
+    
+    const { count } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('company_id', profile.company_id);
+      
+    if (count !== null && count + productsData.length > limit) {
+      return { error: `L'importation de ces ${productsData.length} produits dépassera votre limite de ${limit} produits (Actuellement: ${count}). Veuillez mettre à niveau votre abonnement.` }
+    }
+  }
+
+  // Get all existing categories for this company to map by name
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id, name')
+    .eq('company_id', profile.company_id);
+
+  const categoryMap = new Map((categories || []).map(c => [c.name.toLowerCase().trim(), c.id]));
+
+  const productsToInsert = [];
+  const errors = [];
+
+  for (let i = 0; i < productsData.length; i++) {
+    const row = productsData[i];
+    const rowNum = i + 2; // +1 for 0-index, +1 for header
+
+    const name = row['Nom'] || row['nom'] || row['Name'];
+    const sku = row['SKU'] || row['sku'];
+    const catName = row['Categorie'] || row['Catégorie'] || row['categorie'];
+
+    if (!name || !sku) {
+      errors.push(`Ligne ${rowNum}: Nom et SKU sont requis.`);
+      continue;
+    }
+
+    let category_id = null;
+    if (catName) {
+      const catSearch = catName.toLowerCase().trim();
+      if (categoryMap.has(catSearch)) {
+        category_id = categoryMap.get(catSearch);
+      } else {
+        errors.push(`Ligne ${rowNum}: La catégorie "${catName}" n'existe pas.`);
+        continue;
+      }
+    } else {
+      errors.push(`Ligne ${rowNum}: La catégorie est requise.`);
+      continue;
+    }
+
+    productsToInsert.push({
+      company_id: profile.company_id,
+      name: String(name),
+      sku: String(sku),
+      category_id,
+      price: parseFloat(row['Prix Vente'] || 0) || 0,
+      purchase_price: parseFloat(row['Prix Achat'] || 0) || 0,
+      stock_actuel: parseInt(row['Stock Actuel'] || 0) || 0,
+      stock_min: parseInt(row['Stock Min'] || 0) || 0,
+    });
+  }
+
+  if (productsToInsert.length === 0) {
+    return { error: "Aucun produit valide à importer.", details: errors };
+  }
+
+  const { error: insertError } = await supabase
+    .from('products')
+    .insert(productsToInsert);
+
+  if (insertError) {
+    console.error("Erreur d'import:", insertError);
+    return { error: "Erreur lors de l'insertion dans la base de données." };
+  }
+
+  revalidatePath('/products');
+  return { 
+    success: true, 
+    importedCount: productsToInsert.length,
+    errorsCount: errors.length,
+    errors 
+  };
+}

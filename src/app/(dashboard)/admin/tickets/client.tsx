@@ -98,7 +98,8 @@ export function TicketsClient({ tickets: initialTickets }: TicketsClientProps) {
 
       {/* Tickets List */}
       <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="overflow-x-auto hidden md:block">
           <div className="min-w-[900px]">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -164,6 +165,62 @@ export function TicketsClient({ tickets: initialTickets }: TicketsClientProps) {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+          {tickets.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 text-sm">
+              Aucun ticket d'assistance pour le moment.
+            </div>
+          ) : (
+            tickets.map((ticket) => (
+              <div key={ticket.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1 pr-2">
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{ticket.subject}</h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(ticket.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
+                    </p>
+                  </div>
+                  <span className={`shrink-0 inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium ${
+                    ticket.status === 'Ouvert' 
+                      ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400' 
+                      : 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400'
+                  }`}>
+                    {ticket.status === 'Ouvert' ? <Clock className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                    {ticket.status}
+                  </span>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mt-3 mb-4 border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building2 className="w-4 h-4 text-gray-400" />
+                    <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                      {ticket.companies?.name || "Entreprise Inconnue"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-gray-500 truncate">{ticket.user_email}</p>
+                  </div>
+                  {ticket.admin_reply && (
+                    <div className="mt-2 text-[10px] font-bold text-primary flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Répondu
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <button 
+                    onClick={() => { setSelectedTicket(ticket); setReplyText(""); }}
+                    className="flex-1 flex items-center justify-center gap-2 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-colors text-xs font-medium"
+                  >
+                    <Eye className="w-4 h-4" /> Gérer le ticket
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

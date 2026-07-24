@@ -1,17 +1,84 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+
+type FeatureValue = string | boolean
+
+interface PlanFeature {
+  name: string
+  free: FeatureValue
+  pro: FeatureValue
+  business: FeatureValue
+}
+
+const featuresList: PlanFeature[] = [
+  { name: 'Produits', free: '50', pro: '2000', business: 'Illimités' },
+  { name: 'Utilisateurs', free: '1', pro: '5', business: 'Illimités' },
+  { name: 'Catégories', free: '5', pro: 'Illimitées', business: 'Illimitées' },
+  { name: 'Mouvements / mois', free: '200', pro: 'Illimités', business: 'Illimités' },
+  { name: 'Export PDF/CSV', free: false, pro: true, business: true },
+  { name: 'QR Code', free: true, pro: true, business: true },
+  { name: 'Scanner QR', free: false, pro: true, business: true },
+  { name: 'Rapports avancés', free: false, pro: true, business: true },
+  { name: 'Alertes', free: 'Basiques', pro: 'Avancées', business: 'Avancées' },
+  { name: 'Multi-utilisateurs', free: false, pro: true, business: true },
+  { name: 'Support', free: 'Communauté', pro: 'Email', business: 'Prioritaire + Tél' },
+  { name: 'Logo personnalisé', free: false, pro: true, business: true },
+  { name: 'Import CSV', free: false, pro: true, business: true },
+]
+
+// Les 4 premières fonctionnalités sont considérées comme "basiques" (toujours visibles)
+const BASIC_FEATURES_COUNT = 4
+
+const FeatureItem = ({ value, name, isHighlighted }: { value: FeatureValue, name: string, isHighlighted?: boolean }) => {
+  const textColor = isHighlighted ? "text-white" : "text-gray-700 dark:text-gray-200";
+  const iconColor = isHighlighted ? "text-white" : "text-primary";
+  const disabledColor = isHighlighted ? "text-white/50" : "text-gray-500";
+  const disabledIconColor = isHighlighted ? "text-white/40" : "text-red-400";
+  
+  if (value === false) {
+    return (
+      <li className="flex items-center gap-3 opacity-70">
+        <XCircle className={`${disabledIconColor} shrink-0`} size={20} />
+        <span className={`${disabledColor} line-through text-sm`}>{name}</span>
+      </li>
+    )
+  }
+  
+  const stringValue = String(value);
+  const isIllimite = stringValue.toLowerCase().includes('illimité');
+
+  return (
+    <li className="flex items-center gap-3">
+      <CheckCircle2 className={`${iconColor} shrink-0`} size={20} />
+      <span className={`${textColor} text-sm`}>
+        {name === 'Support' ? (
+          <>Support <span className="font-bold">{stringValue.toLowerCase()}</span></>
+        ) : name === 'Alertes' ? (
+          <>Alertes <span className="font-bold">{stringValue.toLowerCase()}</span></>
+        ) : isIllimite ? (
+          <>{name} <span className="font-bold">{stringValue.toLowerCase()}</span></>
+        ) : (
+          <>Jusqu'à <span className="font-bold">{value}</span> {name.toLowerCase()}</>
+        )}
+      </span>
+    </li>
+  )
+}
 
 export function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
-  // Prix de base (Mensuel)
+  // Prix en promotion
   const proMonthly = 5000
+  const proOldMonthly = 9900
   const businessMonthly = 15000
+  const businessOldMonthly = 19900
 
-  // Equivalent mensuel avec -20%
+  // Equivalent mensuel avec -20% pour l'annuel (basé sur le prix promo)
   const proMonthlyEquiv = proMonthly * 0.8
   const businessMonthlyEquiv = businessMonthly * 0.8
 
@@ -20,6 +87,10 @@ export function Pricing() {
   const businessAnnualTotal = businessMonthlyEquiv * 12
 
   const cycleParam = isAnnual ? '&cycle=annual' : ''
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded)
+  }
 
   return (
     <section id="pricing" className="py-24 bg-transparent relative overflow-hidden">
@@ -44,73 +115,121 @@ export function Pricing() {
           </div>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-center">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
           {/* Free Plan */}
-          <div className="bg-white/60 dark:bg-dark-surface/60 backdrop-blur-md p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col items-center md:items-start text-center md:text-left h-full">
+          <div className="bg-white dark:bg-dark-surface p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Gratuit</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">Pour démarrer sereinement.</p>
-            <div className="mb-8">
-              <span className="text-4xl font-bold text-gray-900 dark:text-white">0 CFA</span>
+            <div className="mb-8 min-h-[80px]">
+              <span className="text-4xl font-bold text-gray-900 dark:text-white">0 XAF</span>
               <span className="text-gray-500">/mois</span>
             </div>
-            <ul className="space-y-4 mb-8 w-full">
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Jusqu'à 50 produits</span></li>
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">1 utilisateur</span></li>
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Support par email</span></li>
+            
+            <ul className="space-y-4 mb-6 flex-grow">
+              {featuresList.slice(0, isExpanded ? featuresList.length : BASIC_FEATURES_COUNT).map((feat, idx) => (
+                <FeatureItem key={idx} name={feat.name} value={feat.free} />
+              ))}
             </ul>
-            <Link href={`/register?plan=Gratuit${cycleParam}`} className="w-full text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-white py-3 rounded-full font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mt-auto border border-gray-200 dark:border-gray-700 block">Commencer</Link>
+            
+            <button 
+              onClick={toggleExpand}
+              className="text-primary text-sm font-medium flex items-center gap-1 mb-8 hover:underline"
+            >
+              {isExpanded ? (
+                <>Voir moins <ChevronUp size={16}/></>
+              ) : (
+                <>Voir la liste détaillée <ChevronDown size={16}/></>
+              )}
+            </button>
+
+            <Link href={`/register?plan=Gratuit${cycleParam}`} className="w-full text-center bg-white text-gray-900 py-3 rounded-full font-bold hover:bg-gray-50 transition-colors border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 mt-auto">Commencer</Link>
           </div>
           
           {/* Pro Plan (Highlighted) */}
-          <div className="bg-primary p-8 rounded-3xl border border-primary shadow-xl shadow-primary/20 relative transform md:-translate-y-6 hover:-translate-y-8 transition-all duration-300 flex flex-col items-center md:items-start text-center md:text-left h-full">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-900 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap shadow-lg">Le plus populaire</div>
+          <div className="bg-[#1a56db] dark:bg-blue-600 p-8 rounded-3xl relative transform md:-translate-y-4 transition-all duration-300 flex flex-col h-full shadow-2xl">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1e40af] dark:bg-blue-900 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap shadow-md">Le plus populaire</div>
             <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
             <p className="text-blue-100 mb-6">Pour les commerces en pleine croissance.</p>
-            <div className="mb-8 text-white min-h-[80px]">
-              <span className="text-4xl font-bold">{isAnnual ? proMonthlyEquiv : proMonthly} CFA</span>
-              <span className="text-blue-200">/mois</span>
+            
+            <div className="mb-8 min-h-[80px] flex flex-col">
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl text-blue-200 line-through">{proOldMonthly}</span>
+                <span className="text-4xl font-bold text-white">{isAnnual ? proMonthlyEquiv : proMonthly} XAF</span>
+                <span className="text-blue-200">/mois</span>
+              </div>
               {isAnnual && (
                 <div className="mt-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                  <span className="inline-block bg-blue-900/50 px-4 py-1.5 rounded-full text-sm font-semibold text-blue-100 shadow-sm border border-blue-400/20">
-                    ✨ Facturé {proAnnualTotal.toLocaleString('fr-FR')} CFA / an
+                  <span className="inline-flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full text-xs font-bold text-white">
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                    Facturé {proAnnualTotal.toLocaleString('fr-FR')} XAF / an
                   </span>
                 </div>
               )}
             </div>
-            <ul className="space-y-4 mb-8 text-white w-full">
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-blue-300 shrink-0" size={20} /><span>Jusqu'à 2000 produits</span></li>
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-blue-300 shrink-0" size={20} /><span>Jusqu'à 5 utilisateurs</span></li>
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-blue-300 shrink-0" size={20} /><span>Alertes par SMS & Email</span></li>
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-blue-300 shrink-0" size={20} /><span>Support prioritaire</span></li>
+            
+            <ul className="space-y-4 mb-6 flex-grow">
+              {featuresList.slice(0, isExpanded ? featuresList.length : BASIC_FEATURES_COUNT).map((feat, idx) => (
+                <FeatureItem key={idx} name={feat.name} value={feat.pro} isHighlighted={true} />
+              ))}
             </ul>
-            <Link href={`/register?plan=Pro${cycleParam}`} className="w-full text-center bg-white text-primary py-3 rounded-full font-medium hover:bg-gray-50 transition-colors shadow-lg btn-cta mt-auto block">Souscrire au plan Pro</Link>
+
+            <button 
+              onClick={toggleExpand}
+              className="text-white text-sm font-medium flex items-center gap-1 mb-8 hover:underline opacity-90"
+            >
+              {isExpanded ? (
+                <>Voir moins <ChevronUp size={16}/></>
+              ) : (
+                <>Voir la liste détaillée <ChevronDown size={16}/></>
+              )}
+            </button>
+
+            <Link href={`/register?plan=Pro${cycleParam}`} className="w-full text-center bg-white text-[#1a56db] py-3 rounded-full font-bold hover:bg-gray-50 transition-colors shadow-lg mt-auto">Souscrire au plan Pro</Link>
           </div>
           
           {/* Business Plan */}
-          <div className="bg-white/60 dark:bg-dark-surface/60 backdrop-blur-md p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col items-center md:items-start text-center md:text-left h-full">
+          <div className="bg-white dark:bg-dark-surface p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Business</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">Pour les réseaux de points de vente.</p>
-            <div className="mb-8 min-h-[80px]">
-              <span className="text-4xl font-bold text-gray-900 dark:text-white">{isAnnual ? businessMonthlyEquiv : businessMonthly} CFA</span>
-              <span className="text-gray-500">/mois</span>
+            
+            <div className="mb-8 min-h-[80px] flex flex-col">
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl text-gray-400 line-through">{businessOldMonthly}</span>
+                <span className="text-4xl font-bold text-gray-900 dark:text-white">{isAnnual ? businessMonthlyEquiv : businessMonthly} XAF</span>
+                <span className="text-gray-500">/mois</span>
+              </div>
               {isAnnual && (
                 <div className="mt-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                  <span className="inline-block bg-primary/10 px-4 py-1.5 rounded-full text-sm font-semibold text-primary shadow-sm border border-primary/20">
-                    ✨ Facturé {businessAnnualTotal.toLocaleString('fr-FR')} CFA / an
+                  <span className="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full text-xs font-bold text-blue-700 dark:text-blue-400">
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                    Facturé {businessAnnualTotal.toLocaleString('fr-FR')} XAF / an
                   </span>
                 </div>
               )}
             </div>
-            <ul className="space-y-4 mb-8 w-full">
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Produits illimités</span></li>
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Utilisateurs illimités</span></li>
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Multi-boutiques</span></li>
-              <li className="flex items-center justify-center md:justify-start gap-3"><CheckCircle2 className="text-primary shrink-0" size={20} /><span className="text-gray-600 dark:text-gray-300">Accompagnement dédié</span></li>
+            
+            <ul className="space-y-4 mb-6 flex-grow">
+              {featuresList.slice(0, isExpanded ? featuresList.length : BASIC_FEATURES_COUNT).map((feat, idx) => (
+                <FeatureItem key={idx} name={feat.name} value={feat.business} />
+              ))}
             </ul>
-            <Link href={`/register?plan=Business${cycleParam}`} className="w-full text-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white py-3 rounded-full font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors mt-auto block">Souscrire au plan Business</Link>
+
+            <button 
+              onClick={toggleExpand}
+              className="text-primary text-sm font-medium flex items-center gap-1 mb-8 hover:underline"
+            >
+              {isExpanded ? (
+                <>Voir moins <ChevronUp size={16}/></>
+              ) : (
+                <>Voir la liste détaillée <ChevronDown size={16}/></>
+              )}
+            </button>
+
+            <Link href={`/register?plan=Business${cycleParam}`} className="w-full text-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white py-3 rounded-full font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors mt-auto">Souscrire au plan Business</Link>
           </div>
         </div>
       </div>
     </section>
   )
 }
+

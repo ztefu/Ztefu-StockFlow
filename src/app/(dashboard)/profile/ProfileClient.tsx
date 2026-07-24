@@ -5,6 +5,7 @@ import { User, Mail, Phone, Shield, Camera, Save, Lock, KeyRound } from "lucide-
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { PasswordInput } from "@/components/ui/password-input";
 
 interface ProfileClientProps {
   user: any;
@@ -335,14 +336,13 @@ export function ProfileClient({ user }: ProfileClientProps) {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mot de passe actuel</label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                  <input 
-                    type="password" 
+                  <PasswordInput 
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     disabled={isUpdatingPassword}
                     required
                     placeholder="••••••••"
-                    className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-xl pl-10 pr-4 py-3 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-xl pl-10 py-3 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -350,8 +350,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nouveau mot de passe</label>
-                  <input 
-                    type="password" 
+                  <PasswordInput 
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={isUpdatingPassword}
@@ -363,8 +362,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirmer le nouveau</label>
-                  <input 
-                    type="password" 
+                  <PasswordInput 
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isUpdatingPassword}

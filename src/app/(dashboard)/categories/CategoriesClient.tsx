@@ -5,6 +5,7 @@ import { Edit, Trash2, FolderOpen, Search, AlertTriangle, Plus } from "lucide-re
 import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
 import { createCategory, updateCategory, deleteCategory } from "./actions";
+import { useSubscription } from "@/providers/SubscriptionProvider";
 
 interface Category {
   id: string;
@@ -15,6 +16,9 @@ interface Category {
 
 export default function CategoriesClient({ initialCategories, userRole }: { initialCategories: Category[], userRole?: string }) {
   const canEdit = userRole === 'Administrateur' || userRole === 'Gestionnaire';
+  const { limits } = useSubscription();
+  const reachedCategoryLimit = initialCategories.length >= limits.maxCategories;
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [isPending, startTransition] = useTransition();
   const supabase = createClient();
@@ -62,6 +66,11 @@ export default function CategoriesClient({ initialCategories, userRole }: { init
 
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (reachedCategoryLimit) {
+      toast.error("Limite atteinte. Le plan Gratuit permet 5 catégories maximum. Passez à la version Pro !");
+      return;
+    }
+    
     if (!newCategoryName.trim()) {
       toast.error("Le nom de la catégorie est requis");
       return;
@@ -227,7 +236,8 @@ export default function CategoriesClient({ initialCategories, userRole }: { init
                 />
               </div>
             </div>
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="overflow-x-auto hidden md:block">
               <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
@@ -267,6 +277,32 @@ export default function CategoriesClient({ initialCategories, userRole }: { init
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+              {filteredCategories.map((category) => (
+                <div key={category.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white">{category.name}</h4>
+                    <span className="inline-flex items-center justify-center px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
+                      {category.productCount} Produits
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-4 line-clamp-2">{category.description || "Aucune description"}</p>
+                  
+                  {canEdit && (
+                    <div className="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-3">
+                      <button onClick={() => handleEdit(category)} className="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-gray-800 text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors text-xs font-medium">
+                        <Edit className="w-4 h-4" /> Éditer
+                      </button>
+                      <button onClick={() => confirmDelete(category.id)} className="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-gray-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors text-xs font-medium">
+                        <Trash2 className="w-4 h-4" /> Supprimer
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
             {filteredCategories.length === 0 && (
               <div className="p-8 text-center text-gray-500 text-sm">

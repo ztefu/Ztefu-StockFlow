@@ -103,8 +103,8 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
         </div>
       </div>
 
-      {/* Movements List */}
-      <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-all duration-200">
+      {/* Movements List Desktop */}
+      <div className="hidden md:block bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-all duration-200">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
@@ -169,6 +169,61 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
               <button className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Précédent</button>
               <button className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Suivant</button>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {filteredMovements.map((movement) => (
+          <div key={movement.id} className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">{movement.product_name}</h4>
+                <p className="text-xs text-gray-500 mt-1">{new Date(movement.date).toLocaleDateString('fr-FR')}</p>
+              </div>
+              <div className="shrink-0">
+                {movement.type === "in" ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400">
+                    <ArrowDownToLine className="w-3 h-3" /> Entrée
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400">
+                    <ArrowUpFromLine className="w-3 h-3" /> Sortie
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl mb-3">
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">Quantité</p>
+                <p className={`text-sm font-bold ${movement.type === "in" ? "text-green-600 dark:text-green-500" : "text-orange-600 dark:text-orange-500"}`}>
+                  {movement.type === "in" ? "+" : "-"}{movement.quantity} <span className="font-normal text-xs text-gray-500">{movement.quantity > 1 ? `${movement.unit}s` : movement.unit}</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">Utilisateur</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{movement.user_name || "Système"}</p>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-3">
+              <p className="text-[11px] text-gray-500 mb-0.5">{movement.type === "in" ? "Fournisseur" : "Motif"}</p>
+              <p className="text-sm text-gray-900 dark:text-white mb-2">{movement.type === "in" ? movement.fournisseur || "-" : movement.motif || "Vente"}</p>
+              
+              {movement.observation && (
+                <>
+                  <p className="text-[11px] text-gray-500 mb-0.5">Observation</p>
+                  <p className="text-sm text-gray-900 dark:text-white">{movement.observation}</p>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+        {filteredMovements.length === 0 && (
+          <div className="text-center py-12 bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-gray-800">
+            <p className="text-gray-500 text-sm">Aucun mouvement trouvé.</p>
           </div>
         )}
       </div>
