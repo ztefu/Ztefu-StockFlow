@@ -34,7 +34,7 @@ export function Logo({ className, size = "md", color = "primary" }: LogoProps) {
         alt="StockFlow AF" 
         width={dimension} 
         height={dimension}
-        className="object-contain"
+        className="object-contain mix-blend-multiply dark:mix-blend-screen dark:invert dark:hue-rotate-180"
         priority
       />
     </div>
