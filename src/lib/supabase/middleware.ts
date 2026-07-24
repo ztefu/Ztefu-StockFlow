@@ -43,14 +43,23 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    request.nextUrl.pathname !== '/' &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/register') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/forgot-password')
-  ) {
+  const publicPaths = [
+    '/',
+    '/login',
+    '/register',
+    '/auth',
+    '/forgot-password',
+    '/about',
+    '/careers',
+    '/contact',
+    '/legal'
+  ];
+
+  const isPublicPath = publicPaths.some(path => 
+    request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`)
+  );
+
+  if (!user && !isPublicPath) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
@@ -61,14 +70,8 @@ export async function updateSession(request: NextRequest) {
   if (user && request.nextUrl.pathname.startsWith('/')) {
     const role = user.user_metadata?.role || 'Administrateur';
     
-    // Skip RBAC check for basic auth paths or root path
-    if (
-      !request.nextUrl.pathname.startsWith('/login') &&
-      !request.nextUrl.pathname.startsWith('/register') &&
-      !request.nextUrl.pathname.startsWith('/auth') &&
-      !request.nextUrl.pathname.startsWith('/forgot-password') &&
-      request.nextUrl.pathname !== '/'
-    ) {
+    // Skip RBAC check for public paths
+    if (!isPublicPath) {
       if (!hasPermission(role, request.nextUrl.pathname)) {
         // Prevent infinite redirect loop
         if (request.nextUrl.pathname !== '/dashboard') {

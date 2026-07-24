@@ -1,11 +1,20 @@
+"use client";
+
 import { Box, Tags, ArrowRightLeft, BellRing, QrCode, LineChart } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export function Features() {
   return (
     <section id="features" className="py-24 bg-transparent relative overflow-hidden">
       {/* Subtle background element */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
-      <div className="max-w-7xl mx-auto px-4 md:px-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.1 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-7xl mx-auto px-4 md:px-10"
+      >
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Tout ce dont vous avez besoin</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Une suite complète d'outils pensés pour la croissance de votre entreprise.</p>
@@ -78,7 +87,7 @@ export function Features() {
             <p className="text-gray-600 dark:text-gray-400">Visualisez vos performances avec des tableaux de bord clairs et des rapports détaillés.</p>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

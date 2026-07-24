@@ -26,9 +26,9 @@ export function Footer() {
         <div className="col-span-1">
           <h4 className="font-bold text-gray-900 dark:text-white mb-4">Entreprise</h4>
           <ul className="space-y-3">
-            <li><Link href="#" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">À propos</Link></li>
-            <li><Link href="#" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">Carrières</Link></li>
-            <li><Link href="#" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">Contact</Link></li>
+            <li><Link href="/about" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">À propos</Link></li>
+            <li><Link href="/careers" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">Carrières</Link></li>
+            <li><Link href="/contact" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">Contact</Link></li>
           </ul>
         </div>
         

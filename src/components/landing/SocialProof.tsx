@@ -1,4 +1,7 @@
+"use client";
+
 import { ShoppingBag, HeartPulse, Hammer, Store, Truck, Coffee, Laptop, Dumbbell, Briefcase, Scissors } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export function SocialProof() {
   const companies = [
@@ -16,7 +19,13 @@ export function SocialProof() {
 
   return (
     <section className="pb-16 bg-transparent overflow-hidden relative z-10">
-      <div className="max-w-7xl mx-auto px-4 md:px-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-7xl mx-auto px-4 md:px-10"
+      >
         <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-8 uppercase tracking-widest text-center">Ils nous font confiance pour leur croissance</p>
         
         <div className="w-full overflow-hidden whitespace-nowrap relative" style={{ maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' }}>
@@ -37,7 +46,7 @@ export function SocialProof() {
           ))}
         </div>
       </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

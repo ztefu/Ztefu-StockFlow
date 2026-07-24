@@ -1,4 +1,7 @@
+"use client";
+
 import { UserPlus, PackagePlus, LineChart } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export function HowItWorks() {
   const steps = [
@@ -24,7 +27,13 @@ export function HowItWorks() {
       {/* Subtle background element */}
       <div className="absolute top-1/2 left-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-7xl mx-auto px-4 md:px-10"
+      >
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Comment ça marche ?</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -46,7 +55,7 @@ export function HowItWorks() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

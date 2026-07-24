@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0)
@@ -27,7 +28,13 @@ export function FAQ() {
 
   return (
     <section id="faq" className="py-24 bg-transparent relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 md:px-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.1 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-7xl mx-auto px-4 md:px-10"
+      >
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Questions fréquentes</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Tout ce que vous devez savoir sur StockFlow AF.</p>
@@ -59,7 +66,7 @@ export function FAQ() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

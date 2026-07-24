@@ -1,7 +1,17 @@
+"use client";
+
+import { motion } from 'framer-motion'
+
 export function Showcase() {
   return (
     <section className="py-24 bg-white dark:bg-dark-surface relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 md:px-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-7xl mx-auto px-4 md:px-10"
+      >
         <div className="text-center mb-16 relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Un tableau de bord intuitif</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Une vue d'ensemble complète sur vos stocks, vos alertes et vos performances en un seul endroit.</p>
@@ -16,7 +26,7 @@ export function Showcase() {
             />
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

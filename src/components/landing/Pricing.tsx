@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 type FeatureValue = string | boolean
 
@@ -94,7 +95,13 @@ export function Pricing() {
 
   return (
     <section id="pricing" className="py-24 bg-transparent relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 md:px-10 relative z-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.1 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-7xl mx-auto px-4 md:px-10 relative z-10"
+      >
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Des tarifs adaptés à votre croissance</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">Choisissez le plan qui correspond le mieux aux besoins de votre entreprise.</p>
@@ -228,7 +235,7 @@ export function Pricing() {
             <Link href={`/register?plan=Business${cycleParam}`} className="w-full text-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white py-3 rounded-full font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors mt-auto">Souscrire au plan Business</Link>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

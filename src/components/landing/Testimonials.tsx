@@ -1,9 +1,18 @@
+"use client";
+
 import { Star } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export function Testimonials() {
   return (
     <section id="testimonials" className="py-24 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 md:px-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.1 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-7xl mx-auto px-4 md:px-10"
+      >
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Adopté par des milliers d'entrepreneurs</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Découvrez comment StockFlow AF transforme le quotidien des commerçants à travers le continent.</p>
@@ -64,7 +73,7 @@ export function Testimonials() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

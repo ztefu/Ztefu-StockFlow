@@ -1,9 +1,18 @@
+"use client";
+
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 export function CTA() {
   return (
     <section className="py-24 relative overflow-hidden bg-transparent">
-      <div className="max-w-5xl mx-auto px-4 md:px-10 relative z-10">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-5xl mx-auto px-4 md:px-10 relative z-10"
+      >
         <div className="group relative bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-3xl p-12 md:p-20 text-center shadow-2xl overflow-hidden transition-all duration-500 hover:shadow-primary/20 hover:-translate-y-1">
           {/* subtle animated glow inside */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[80px] transition-transform duration-700 group-hover:scale-150"></div>
@@ -15,7 +24,7 @@ export function CTA() {
               Commencer gratuitement
           </Link>
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }
