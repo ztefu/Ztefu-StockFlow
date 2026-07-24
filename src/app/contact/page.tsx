@@ -24,7 +24,7 @@ export default function ContactPage() {
           <div className="grid md:grid-cols-2 gap-12 items-start">
             {/* Informations de contact */}
             <div className="space-y-8">
-              <div className="bg-white dark:bg-dark-surface p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+              <div className="bg-white dark:bg-dark-surface p-6 md:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Nos Coordonnées</h2>
 
                 <div className="space-y-6">
@@ -64,11 +64,11 @@ export default function ContactPage() {
             </div>
 
             {/* Formulaire de contact */}
-            <div className="bg-white dark:bg-dark-surface p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="bg-white dark:bg-dark-surface p-6 md:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Envoyez-nous un message</h2>
 
               <form className="space-y-5">
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Prénom</label>
                     <input type="text" className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all dark:text-white" placeholder="John" />
