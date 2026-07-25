@@ -12,7 +12,17 @@ import { CTA } from '@/components/landing/CTA'
 import { Footer } from '@/components/landing/Footer'
 import './landing.css'
 
-export default function Home() {
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+
+export default async function Home() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    redirect('/dashboard')
+  }
+
   return (
     <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white font-sans antialiased overflow-x-hidden min-h-screen">
       <Navbar />

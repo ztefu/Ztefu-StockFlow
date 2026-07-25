@@ -55,6 +55,21 @@ export default async function SettingsPage() {
     .select('*', { count: 'exact', head: true })
     .eq('company_id', companyId);
 
+  const { count: categoriesCount } = await supabase
+    .from('categories')
+    .select('*', { count: 'exact', head: true })
+    .eq('company_id', companyId);
+
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const { count: movementsCount } = await supabase
+    .from('stock_movements')
+    .select('*, products!inner(company_id)', { count: 'exact', head: true })
+    .eq('products.company_id', companyId)
+    .gte('created_at', startOfMonth.toISOString());
+
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || ['bntowo88@gmail.com'];
   const isSuperAdmin = profile?.is_super_admin || (userData.user.email && adminEmails.includes(userData.user.email.toLowerCase()));
 
@@ -67,7 +82,9 @@ export default async function SettingsPage() {
     is_super_admin: isSuperAdmin,
     usage: {
       users: usersCount || 0,
-      products: productsCount || 0
+      products: productsCount || 0,
+      categories: categoriesCount || 0,
+      movements: movementsCount || 0
     }
   };
 

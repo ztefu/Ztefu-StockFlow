@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Save, Upload, MapPin, Building, Mail, Phone, Globe, Clock, Banknote, Settings, CreditCard, ShieldCheck, CheckCircle } from "lucide-react";
+import { Save, Upload, MapPin, Building, Mail, Phone, Globe, Clock, Banknote, Settings, CreditCard, ShieldCheck, CheckCircle, LockKeyhole, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,6 +22,8 @@ interface Settings {
   usage?: {
     users: number;
     products: number;
+    categories: number;
+    movements: number;
   };
   subscription_end_date?: string | null;
   billing_cycle?: string | null;
@@ -195,25 +197,13 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
   };
 
   const handleUpgrade = async (plan: string, price: number, cycle: 'monthly' | 'annual' = 'monthly') => {
-    const toastId = toast.loading("Génération du lien de paiement...");
-    try {
-      // Appel à l'API Stripe
-      const res = await fetch('/api/billing/stripe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, price, cycle })
-      });
-      const data = await res.json();
-      
-      if (data.link) {
-        window.location.href = data.link;
-      } else {
-        toast.error("Impossible de générer le lien de paiement", { id: toastId });
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur de connexion au serveur", { id: toastId });
-    }
+    // Redirection vers la page de checkout intermédiaire
+    const searchParams = new URLSearchParams({
+      plan,
+      price: price.toString(),
+      cycle
+    });
+    router.push(`/checkout?${searchParams.toString()}`);
   };
 
   return (
@@ -465,28 +455,80 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
               )}
 
               {/* Statistiques d'utilisation (uniquement pour Gratuit et Pro) */}
-              {(settings.subscription_plan === 'Gratuit' || settings.subscription_plan === 'Pro') && settings.usage && (
-                <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">Consommation</h4>
+              {/* Statistiques d'utilisation et Limites */}
+              {settings.usage && (
+                <div className="space-y-5 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">Consommation & Limites</h4>
                   
                   {/* Produits */}
                   <div>
                     <div className="flex justify-between text-sm mb-1.5">
                       <span className="text-gray-700 dark:text-gray-300">Produits</span>
                       <span className="font-medium text-gray-900 dark:text-white">
-                        {settings.usage.products} / {settings.subscription_plan === 'Gratuit' ? 50 : 2000}
+                        {settings.subscription_plan === 'Business' 
+                          ? 'Illimité' 
+                          : `${settings.usage.products} / ${settings.subscription_plan === 'Gratuit' ? 50 : 2000}`}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full ${
-                          (settings.usage.products / (settings.subscription_plan === 'Gratuit' ? 50 : 2000)) > 0.8 
-                            ? 'bg-red-500' 
-                            : 'bg-primary'
-                        }`}
-                        style={{ width: `${Math.min(100, (settings.usage.products / (settings.subscription_plan === 'Gratuit' ? 50 : 2000)) * 100)}%` }}
-                      ></div>
+                    {settings.subscription_plan !== 'Business' && (
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            (settings.usage.products / (settings.subscription_plan === 'Gratuit' ? 50 : 2000)) > 0.8 
+                              ? 'bg-red-500' 
+                              : 'bg-primary'
+                          }`}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Catégories */}
+                  <div>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="text-gray-700 dark:text-gray-300">Catégories</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {settings.subscription_plan === 'Gratuit' 
+                          ? `${settings.usage.categories || 0} / 5`
+                          : 'Illimité'}
+                      </span>
                     </div>
+                    {settings.subscription_plan === 'Gratuit' && (
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            ((settings.usage.categories || 0) / 5) > 0.8 
+                              ? 'bg-red-500' 
+                              : 'bg-primary'
+                          }`}
+                          style={{ width: `${Math.min(100, ((settings.usage.categories || 0) / 5) * 100)}%` }}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Mouvements de stock / mois */}
+                  <div>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="text-gray-700 dark:text-gray-300">Mouvements / mois</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {settings.subscription_plan === 'Gratuit' 
+                          ? `${settings.usage.movements || 0} / 200`
+                          : 'Illimité'}
+                      </span>
+                    </div>
+                    {settings.subscription_plan === 'Gratuit' && (
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            ((settings.usage.movements || 0) / 200) > 0.8 
+                              ? 'bg-red-500' 
+                              : 'bg-primary'
+                          }`}
+                          style={{ width: `${Math.min(100, ((settings.usage.movements || 0) / 200) * 100)}%` }}
+                        ></div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Utilisateurs */}
@@ -494,25 +536,72 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                     <div className="flex justify-between text-sm mb-1.5">
                       <span className="text-gray-700 dark:text-gray-300">Utilisateurs</span>
                       <span className="font-medium text-gray-900 dark:text-white">
-                        {settings.usage.users} / {settings.subscription_plan === 'Gratuit' ? 1 : 5}
+                        {settings.subscription_plan === 'Business' 
+                          ? 'Illimité' 
+                          : `${settings.usage.users} / ${settings.subscription_plan === 'Gratuit' ? 1 : 5}`}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full ${
-                          (settings.usage.users / (settings.subscription_plan === 'Gratuit' ? 1 : 5)) >= 1 
-                            ? 'bg-red-500' 
-                            : 'bg-primary'
-                        }`}
-                        style={{ width: `${Math.min(100, (settings.usage.users / (settings.subscription_plan === 'Gratuit' ? 1 : 5)) * 100)}%` }}
-                      ></div>
-                    </div>
+                    {settings.subscription_plan !== 'Business' && (
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            (settings.usage.users / (settings.subscription_plan === 'Gratuit' ? 1 : 5)) >= 1 
+                              ? 'bg-red-500' 
+                              : 'bg-primary'
+                          }`}
+                          style={{ width: `${Math.min(100, (settings.usage.users / (settings.subscription_plan === 'Gratuit' ? 1 : 5)) * 100)}%` }}
+                        ></div>
+                      </div>
+                    )}
                     {(settings.subscription_plan === 'Gratuit' && settings.usage.users >= 1) && (
                       <p className="text-xs text-red-500 mt-2">Limite atteinte. Passez au plan Pro pour ajouter votre équipe.</p>
                     )}
                     {(settings.subscription_plan === 'Pro' && settings.usage.users >= 5) && (
                       <p className="text-xs text-red-500 mt-2">Limite atteinte. Passez au plan Business.</p>
                     )}
+                  </div>
+
+                  {/* Fonctionnalités Additionnelles */}
+                  <div className="space-y-3 pt-2">
+                    {/* Alertes SMS & Email */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700 dark:text-gray-300">Alertes SMS & Email</span>
+                      {settings.subscription_plan === 'Gratuit' ? (
+                        <span className="text-gray-400 dark:text-gray-500 flex items-center gap-1.5 text-xs font-medium"><LockKeyhole className="w-3.5 h-3.5" /> Débloqué en Pro</span>
+                      ) : (
+                        <span className="text-green-600 dark:text-green-400 flex items-center gap-1.5 text-xs font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Inclus</span>
+                      )}
+                    </div>
+                    
+                    {/* Support prioritaire */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700 dark:text-gray-300">Support prioritaire</span>
+                      {settings.subscription_plan === 'Gratuit' ? (
+                        <span className="text-gray-400 dark:text-gray-500 flex items-center gap-1.5 text-xs font-medium"><LockKeyhole className="w-3.5 h-3.5" /> Débloqué en Pro</span>
+                      ) : (
+                        <span className="text-green-600 dark:text-green-400 flex items-center gap-1.5 text-xs font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Inclus</span>
+                      )}
+                    </div>
+
+                    {/* Multi-boutiques */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700 dark:text-gray-300">Multi-boutiques</span>
+                      {settings.subscription_plan !== 'Business' ? (
+                        <span className="text-gray-400 dark:text-gray-500 flex items-center gap-1.5 text-xs font-medium"><LockKeyhole className="w-3.5 h-3.5" /> Débloqué en Business</span>
+                      ) : (
+                        <span className="text-green-600 dark:text-green-400 flex items-center gap-1.5 text-xs font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Inclus</span>
+                      )}
+                    </div>
+
+                    {/* Accompagnement dédié */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700 dark:text-gray-300">Accompagnement dédié</span>
+                      {settings.subscription_plan !== 'Business' ? (
+                        <span className="text-gray-400 dark:text-gray-500 flex items-center gap-1.5 text-xs font-medium"><LockKeyhole className="w-3.5 h-3.5" /> Débloqué en Business</span>
+                      ) : (
+                        <span className="text-green-600 dark:text-green-400 flex items-center gap-1.5 text-xs font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Inclus</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -543,7 +632,10 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                     <p className="text-sm text-gray-500">Jusqu'à 2000 produits</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-lg font-bold text-primary">{isAnnualBilling ? '4 000' : '5 000'} XAF<span className="text-xs text-gray-500">/mois</span></span>
+                    <div className="flex items-baseline justify-end gap-2">
+                      <span className="text-sm text-gray-400 line-through">9 900</span>
+                      <span className="text-lg font-bold text-primary">{isAnnualBilling ? '4 000' : '5 000'} XAF<span className="text-xs text-gray-500">/mois</span></span>
+                    </div>
                     {isAnnualBilling && <div className="text-xs text-gray-500 mt-1">Facturé 48 000 XAF/an</div>}
                   </div>
                 </div>
@@ -551,7 +643,19 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                 <ul className="space-y-3 mb-6 text-sm text-gray-600 dark:text-gray-400">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-primary" />
-                    <span>Jusqu'à 5 utilisateurs</span>
+                    <span><strong>2 000</strong> produits stockés</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Jusqu'à <strong>5</strong> utilisateurs</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Catégories <strong>illimitées</strong></span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Mouvements / mois <strong>illimités</strong></span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-primary" />
@@ -579,10 +683,13 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h4 className="font-bold text-gray-900 dark:text-white">Plan Business</h4>
-                    <p className="text-sm text-gray-500">Produits illimités</p>
+                    <p className="text-sm text-gray-500 text-primary font-medium">L'illimité absolu</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-lg font-bold text-primary">{isAnnualBilling ? '12 000' : '15 000'} XAF<span className="text-xs text-gray-500">/mois</span></span>
+                    <div className="flex items-baseline justify-end gap-2">
+                      <span className="text-sm text-gray-400 line-through">19 900</span>
+                      <span className="text-lg font-bold text-primary">{isAnnualBilling ? '12 000' : '15 000'} XAF<span className="text-xs text-gray-500">/mois</span></span>
+                    </div>
                     {isAnnualBilling && <div className="text-xs text-gray-500 mt-1">Facturé 144 000 XAF/an</div>}
                   </div>
                 </div>
@@ -590,7 +697,27 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                 <ul className="space-y-3 mb-6 text-sm text-gray-600 dark:text-gray-400">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-primary" />
-                    <span>Utilisateurs illimités</span>
+                    <span>Produits <strong>illimités</strong></span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Utilisateurs <strong>illimités</strong></span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Catégories <strong>illimitées</strong></span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Mouvements / mois <strong>illimités</strong></span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Alertes par SMS & Email</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span>Support prioritaire</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-primary" />

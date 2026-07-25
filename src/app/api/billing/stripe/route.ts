@@ -23,6 +23,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Entreprise non trouvée' }, { status: 404 });
     }
 
+    const { data: company } = await supabase
+      .from('companies')
+      .select('name')
+      .eq('id', profile.company_id)
+      .single();
+
+    const companyName = company?.name || "l'entreprise";
+
     const APP_URL = request.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
     if (!process.env.STRIPE_SECRET_KEY) {
@@ -47,7 +55,7 @@ export async function POST(request: Request) {
             currency: 'xaf',
             product_data: {
               name: `Abonnement StockFlow AF - Plan ${plan}`,
-              description: `Mise à niveau vers le plan ${plan} pour l'entreprise.\n💳 INFO: Les cartes virtuelles MTN Mobile et Orange Money sont acceptées.`,
+              description: `Mise à niveau vers le plan ${plan} pour ${companyName}.`,
             },
             unit_amount: price, // En XAF (zéro-décimales)
           },
