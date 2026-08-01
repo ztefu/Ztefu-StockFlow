@@ -65,7 +65,9 @@ export function NotificationBell() {
     <Link href={isSuperAdmin ? "/admin/tickets" : "/help"} className="relative p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
       <Bell className="w-5 h-5" />
       {openTicketsCount > 0 && (
-        <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border-2 border-white dark:border-gray-900"></span>
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center border-2 border-white dark:border-gray-900">
+          {openTicketsCount}
+        </span>
       )}
     </Link>
   );

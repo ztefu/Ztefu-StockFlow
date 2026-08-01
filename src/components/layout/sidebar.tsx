@@ -139,7 +139,9 @@ export function Sidebar({ className, onClose }: SidebarProps) {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'support_tickets' },
         () => {
-          fetchUser();
+          supabase.auth.getUser().then(({ data }) => {
+            if (data.user) fetchUser(data.user);
+          });
         }
       )
       .subscribe();
