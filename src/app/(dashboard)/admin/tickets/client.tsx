@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageCircle, CheckCircle, Clock, Eye, Send, Building2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
@@ -28,6 +28,31 @@ export function TicketsClient({ tickets: initialTickets }: TicketsClientProps) {
   const [replyText, setReplyText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const supabase = createClient();
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      const { data } = await supabase
+        .from('support_tickets')
+        .select('*, companies(name)')
+        .order('created_at', { ascending: false });
+      if (data) setTickets(data);
+    };
+
+    const channel = supabase
+      .channel(`schema-db-changes-admin-tickets-${Math.random()}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'support_tickets' },
+        () => {
+          fetchTickets();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     const toastId = toast.loading("Mise à jour du statut...");

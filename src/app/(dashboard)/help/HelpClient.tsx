@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HelpCircle, Mail, Phone, ExternalLink, ChevronDown, ChevronUp, FileText, MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
@@ -45,6 +45,32 @@ export function HelpClient({ userEmail, userRole, companyId, initialTickets = []
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      const { data } = await supabase
+        .from("support_tickets")
+        .select("*")
+        .eq("company_id", companyId)
+        .order("created_at", { ascending: false });
+      if (data) setTickets(data);
+    };
+
+    const channel = supabase
+      .channel(`schema-db-changes-help-tickets-${Math.random()}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'support_tickets', filter: `company_id=eq.${companyId}` },
+        () => {
+          fetchTickets();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, companyId]);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
