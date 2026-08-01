@@ -4,6 +4,8 @@ import { useState } from "react";
 import { HelpCircle, Mail, Phone, ExternalLink, ChevronDown, ChevronUp, FileText, MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { useSubscription } from "@/providers/SubscriptionProvider";
+import { Lock } from "lucide-react";
 
 const faqs = [
   {
@@ -33,6 +35,10 @@ interface HelpClientProps {
 
 export function HelpClient({ userEmail, userRole, companyId, initialTickets = [] }: HelpClientProps) {
   const supabase = createClient();
+  const { plan } = useSubscription();
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@stockflow-af.com';
+  const supportPhone = process.env.NEXT_PUBLIC_SUPPORT_PHONE || '+237 000 00 00 00';
+  const supportPhoneLink = supportPhone.replace(/\s+/g, '');
   const [tickets, setTickets] = useState(initialTickets);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   
@@ -42,6 +48,21 @@ export function HelpClient({ userEmail, userRole, companyId, initialTickets = []
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const handleMarkAsRead = async (id: string) => {
+    const toastId = toast.loading("Mise à jour...");
+    try {
+      const { error } = await supabase
+        .from('support_tickets')
+        .update({ status: 'Fermé' })
+        .eq('id', id);
+      if (error) throw error;
+      setTickets(tickets.map(t => t.id === id ? { ...t, status: 'Fermé' } : t));
+      toast.success("Marqué comme lu", { id: toastId });
+    } catch (err) {
+      toast.error("Erreur lors de la mise à jour", { id: toastId });
+    }
   };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -228,8 +249,18 @@ export function HelpClient({ userEmail, userRole, companyId, initialTickets = []
                             </p>
                           </div>
                         )}
-                        <div className="text-[10px] text-gray-400 mt-2">
-                          Le {new Date(ticket.created_at).toLocaleDateString('fr-FR')}
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="text-[10px] text-gray-400">
+                            Le {new Date(ticket.created_at).toLocaleDateString('fr-FR')}
+                          </div>
+                          {ticket.status === 'Résolu' && (
+                            <button 
+                              onClick={() => handleMarkAsRead(ticket.id)}
+                              className="text-xs font-medium text-primary hover:text-primary-dark transition-colors px-3 py-1 bg-primary/10 rounded-lg"
+                            >
+                              Marquer comme lu
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -238,18 +269,31 @@ export function HelpClient({ userEmail, userRole, companyId, initialTickets = []
               )}
 
               {/* Direct Contact Info */}
-              <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6">
+              <div className="relative bg-primary/5 border border-primary/10 rounded-2xl p-6 overflow-hidden">
                 <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-sm uppercase tracking-wide">Contacts directs</h4>
-                <div className="space-y-4">
+                <div className={`space-y-4 ${plan === 'Gratuit' ? 'blur-sm select-none' : ''}`}>
                   <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                     <Mail className="w-5 h-5 text-primary" />
-                    <a href="mailto:bntowo88@gmail.com" className="hover:text-primary transition-colors">bntowo88@gmail.com</a>
+                    <a href={plan === 'Gratuit' ? '#' : `mailto:${supportEmail}`} className="hover:text-primary transition-colors">{supportEmail}</a>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                     <Phone className="w-5 h-5 text-primary" />
-                    <a href="tel:+237695518835" className="hover:text-primary transition-colors">+237 695 51 88 35</a>
+                    <a href={plan === 'Gratuit' ? '#' : `tel:${supportPhoneLink}`} className="hover:text-primary transition-colors">{supportPhone}</a>
                   </div>
                 </div>
+
+                {/* Free Plan Overlay */}
+                {plan === 'Gratuit' && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/40 dark:bg-dark-surface/40 backdrop-blur-[2px]">
+                    <div className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col items-center text-center">
+                      <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-2">
+                        <Lock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">Contacts réservés</p>
+                      <p className="text-xs text-gray-500 mt-1">Disponible à partir du plan Pro</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           ) : (

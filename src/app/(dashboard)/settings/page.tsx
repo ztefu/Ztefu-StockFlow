@@ -70,7 +70,7 @@ export default async function SettingsPage() {
     .eq('products.company_id', companyId)
     .gte('created_at', startOfMonth.toISOString());
 
-  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || ['bntowo88@gmail.com'];
+  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
   const isSuperAdmin = profile?.is_super_admin || (userData.user.email && adminEmails.includes(userData.user.email.toLowerCase()));
 
   const enrichedSettings = {

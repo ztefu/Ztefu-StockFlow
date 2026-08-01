@@ -26,13 +26,15 @@ import {
   ScanLine,
   BarChart3,
   Building2,
-  Globe
+  Globe,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { hasPermission } from "@/lib/permissions";
+import { useSubscription } from "@/providers/SubscriptionProvider";
 
 const menuItems = [
   {
@@ -88,16 +90,35 @@ export function Sidebar({ className, onClose }: SidebarProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [openTicketsCount, setOpenTicketsCount] = useState(0);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const supabase = createClient();
+  const { plan } = useSubscription();
 
   useEffect(() => {
     const fetchUser = async (sessionUser?: any) => {
       const u = sessionUser || (await supabase.auth.getUser()).data.user;
       if (u) {
-        const { data: profile } = await supabase.from('profiles').select('is_super_admin').eq('id', u.id).single();
-        setUser({ ...u, is_super_admin: profile?.is_super_admin || u.email?.toLowerCase() === 'bntowo88@gmail.com' });
+        const { data: profile } = await supabase.from('profiles').select('is_super_admin, company_id').eq('id', u.id).single();
+        const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
+        const is_admin = profile?.is_super_admin || !!(u.email && adminEmails.includes(u.email.toLowerCase()));
+        setUser({ ...u, is_super_admin: is_admin });
+
+        if (is_admin) {
+          const { count } = await supabase
+            .from('support_tickets')
+            .select('id', { count: 'exact', head: true })
+            .eq('status', 'Ouvert');
+          setOpenTicketsCount(count || 0);
+        } else if (profile?.company_id) {
+          const { count } = await supabase
+            .from('support_tickets')
+            .select('id', { count: 'exact', head: true })
+            .eq('company_id', profile.company_id)
+            .eq('status', 'Résolu');
+          setOpenTicketsCount(count || 0);
+        }
       } else {
         setUser(null);
       }
@@ -112,10 +133,22 @@ export function Sidebar({ className, onClose }: SidebarProps) {
       }
     });
 
+    const channel = supabase
+      .channel(`schema-db-changes-sidebar-tickets-${Math.random()}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'support_tickets' },
+        () => {
+          fetchUser();
+        }
+      )
+      .subscribe();
+
     return () => {
       authListener.subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
-  }, [supabase.auth]);
+  }, [supabase]);
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
@@ -245,7 +278,7 @@ export function Sidebar({ className, onClose }: SidebarProps) {
                         onClose && onClose()
                       }}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                        "flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full",
                         section.isDisabled
                           ? "text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed pointer-events-none"
                           : item.active 
@@ -255,8 +288,20 @@ export function Sidebar({ className, onClose }: SidebarProps) {
                       tabIndex={section.isDisabled ? -1 : 0}
                       aria-disabled={section.isDisabled}
                     >
-                      <item.icon className={cn("w-5 h-5", (item.active && !section.isDisabled) ? "text-primary" : "")} />
-                      {item.label}
+                      <div className="flex items-center gap-3">
+                        <item.icon className={cn("w-5 h-5", (item.active && !section.isDisabled) ? "text-primary" : "")} />
+                        {item.label}
+                      </div>
+                      {item.label === "Tickets Support" && openTicketsCount > 0 && (
+                        <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                          {openTicketsCount}
+                        </span>
+                      )}
+                      {item.label === "Aide et Support" && openTicketsCount > 0 && (
+                        <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                          {openTicketsCount}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 ))}
@@ -269,6 +314,24 @@ export function Sidebar({ className, onClose }: SidebarProps) {
       </div>
 
       <div className="mt-auto p-6 space-y-1 border-t border-gray-100 dark:border-gray-800">
+        {!user?.is_super_admin && (
+          <Link 
+            href="/settings#billing" 
+            onClick={() => onClose && onClose()}
+            className="flex items-center justify-between px-4 py-3 mb-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 hover:border-primary/40 transition-colors w-full group"
+          >
+            <div className="flex flex-col">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-0.5">Plan actuel</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-primary">{plan}</span>
+                <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">Actif</span>
+              </div>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform text-primary">
+              <Sparkles className="w-4 h-4" />
+            </div>
+          </Link>
+        )}
         {!user?.is_super_admin && (
           <Link 
             href="/help"

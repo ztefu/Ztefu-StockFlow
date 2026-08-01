@@ -45,7 +45,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-900 dark:text-white mb-1">Téléphone</h3>
-                      <p className="text-gray-600 dark:text-gray-400">+237 695 51 88 35</p>
+                      <p className="text-gray-600 dark:text-gray-400">{process.env.NEXT_PUBLIC_SUPPORT_PHONE || '+237 000 00 00 00'}</p>
                       <p className="text-sm text-gray-500 mt-1">Du lundi au vendredi, de 8h à 18h GMT</p>
                     </div>
                   </div>

@@ -16,7 +16,7 @@ export default async function ForgotPasswordPage({
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white dark:bg-gray-900 selection:bg-primary/30">
       
       {/* Left Section - Form (1/3 width on lg) */}
-      <div className="w-full lg:w-1/3 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative bg-gray-50 lg:bg-white dark:bg-gray-900 z-50 border-r border-gray-100 dark:border-gray-800">
+      <div className="w-full flex-1 lg:flex-none lg:w-1/3 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative bg-gray-50 lg:bg-white dark:bg-gray-900 z-50 border-r border-gray-100 dark:border-gray-800">
         
         {/* Mobile Background Decoration */}
         <div className="absolute inset-0 lg:hidden overflow-hidden pointer-events-none z-0">

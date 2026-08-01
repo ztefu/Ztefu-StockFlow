@@ -5,6 +5,7 @@ import { RoleGuard } from "@/components/layout/RoleGuard";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SubscriptionProvider } from "@/providers/SubscriptionProvider";
+import { NotificationHeader } from "@/components/layout/notification-header";
 
 export default async function DashboardLayout({
   children,
@@ -52,6 +53,7 @@ export default async function DashboardLayout({
         </div>
         <MobileSidebar />
         <main className="lg:pl-64 flex flex-col min-h-screen pt-16 lg:pt-0">
+          <NotificationHeader />
           <div className="flex-1 p-4 lg:p-8">
             {children}
           </div>

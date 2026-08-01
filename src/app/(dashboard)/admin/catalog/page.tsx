@@ -12,7 +12,7 @@ export default async function AdminCatalogPage() {
   }
 
   // Vérifier si l'utilisateur est super admin
-  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || ['bntowo88@gmail.com'];
+  const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
   const { data: profile } = await supabase.from('profiles').select('is_super_admin').eq('id', user.id).single();
   const isSuperAdmin = profile?.is_super_admin || (user.email && adminEmails.includes(user.email.toLowerCase()));
 

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import { cn } from "@/lib/utils/cn";
+import { Logo } from "@/components/ui/logo";
+import { NotificationBell } from "./notification-header";
 
 export function MobileSidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,17 +14,18 @@ export function MobileSidebar() {
     <>
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-dark-surface border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-4 z-40">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-            <span className="text-white font-bold text-xl">S</span>
-          </div>
+          <Logo className="h-8 w-auto" />
           <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">StockFlow AF</span>
         </div>
-        <button 
-          onClick={() => setIsOpen(true)}
-          className="p-2 -mr-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button 
+            onClick={() => setIsOpen(true)}
+            className="p-2 -mr-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
       </div>
 
       {/* Backdrop */}

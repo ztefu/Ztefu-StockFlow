@@ -14,7 +14,7 @@ export function RoleGuard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase.from('profiles').select('is_super_admin, role, company_id').eq('id', user.id).single();
-        const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || ['bntowo88@gmail.com'];
+        const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
         const isSuperAdmin = profile?.is_super_admin || (user.email && adminEmails.includes(user.email.toLowerCase()));
         
         if (isSuperAdmin) {
