@@ -115,7 +115,7 @@ export default function StockEntriesClient({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prix d'achat unitaire</label>
-                <input type="number" placeholder="0 FCFA" className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors" disabled={isPending} />
+                <input type="number" placeholder="0 XAF" className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors" disabled={isPending} />
               </div>
 
               <div>

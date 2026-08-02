@@ -61,6 +61,7 @@ export default async function DashboardPage() {
   
   const totalProducts = products.length;
   const totalStockValue = products.reduce((acc: number, p: any) => acc + (p.stock_actuel * (p.purchase_price || 0)), 0);
+  const totalPotentialRevenue = products.reduce((acc: number, p: any) => acc + (p.stock_actuel * (p.price || 0)), 0);
   
   const outOfStockItems = products.filter((p: any) => p.stock_actuel === 0).length;
   const lowStockItems = products.filter((p: any) => p.stock_actuel > 0 && p.stock_actuel <= p.stock_min).length;
@@ -126,6 +127,7 @@ export default async function DashboardPage() {
 
   const stats = {
     totalStockValue,
+    totalPotentialRevenue,
     totalProducts,
     lowStockItems,
     outOfStockItems,

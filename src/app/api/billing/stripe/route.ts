@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 
 export async function POST(request: Request) {
   try {
-    const { plan, price, cycle = 'monthly' } = await request.json();
+    const { plan, cycle = 'monthly' } = await request.json();
 
     const supabase = await createClient();
     const { data: userData } = await supabase.auth.getUser();
@@ -44,6 +44,17 @@ export async function POST(request: Request) {
       apiVersion: '2026-06-24.dahlia' // Use the latest compatible Stripe API version
     });
 
+    const PRICES: Record<string, { monthly: number, annual: number }> = {
+      'Pro': { monthly: 5000, annual: 48000 },
+      'Business': { monthly: 15000, annual: 144000 }
+    };
+
+    if (!PRICES[plan] || !PRICES[plan][cycle as 'monthly' | 'annual']) {
+      return NextResponse.json({ error: 'Plan invalide' }, { status: 400 });
+    }
+
+    const serverPrice = PRICES[plan][cycle as 'monthly' | 'annual'];
+
     // Créer la session Stripe Checkout
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -57,7 +68,7 @@ export async function POST(request: Request) {
               name: `Abonnement StockFlow AF - Plan ${plan}`,
               description: `Mise à niveau vers le plan ${plan} pour ${companyName}.`,
             },
-            unit_amount: price, // En XAF (zéro-décimales)
+            unit_amount: serverPrice, // En XAF (zéro-décimales)
           },
           quantity: 1,
         },

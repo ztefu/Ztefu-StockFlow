@@ -8,7 +8,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 interface Settings {
   id: string;
+  company_id?: string;
   company_name: string;
+  industry?: string | null;
   registration_number: string | null;
   contact_email: string | null;
   phone: string | null;
@@ -32,9 +34,10 @@ interface Settings {
 
 interface SettingsClientProps {
   initialSettings: Settings | null;
+  allIndustries?: string[];
 }
 
-export function SettingsClient({ initialSettings }: SettingsClientProps) {
+export function SettingsClient({ initialSettings, allIndustries = [] }: SettingsClientProps) {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,6 +45,9 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isAnnualBilling, setIsAnnualBilling] = useState(false);
+  const [showCustomIndustry, setShowCustomIndustry] = useState(
+    initialSettings?.industry ? !allIndustries.includes(initialSettings.industry) : false
+  );
   const [settings, setSettings] = useState<Settings>(initialSettings || {
     id: "",
     company_name: "Mon Entreprise",
@@ -49,7 +55,7 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
     contact_email: "",
     phone: "",
     address: "",
-    currency: "XOF",
+    currency: "XAF",
     language: "fr",
     timezone: "Africa/Douala",
   });
@@ -186,6 +192,15 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 
       if (error) throw error;
 
+      if (settings.company_id && settings.industry !== undefined) {
+        const { error: companyError } = await supabase
+          .from('companies')
+          .update({ industry: settings.industry })
+          .eq('id', settings.company_id);
+        
+        if (companyError) throw companyError;
+      }
+
       toast.success("Paramètres sauvegardés avec succès !", { id: toastId });
       router.refresh();
     } catch (error: any) {
@@ -277,6 +292,45 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
                   />
                 </div>
               </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Secteur d'activité</label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <select 
+                    value={showCustomIndustry ? "autre" : (settings.industry || "")}
+                    onChange={(e) => {
+                      if (e.target.value === "autre") {
+                        setShowCustomIndustry(true);
+                        setSettings({...settings, industry: ""});
+                      } else {
+                        setShowCustomIndustry(false);
+                        setSettings({...settings, industry: e.target.value});
+                      }
+                    }}
+                    className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg pl-10 pr-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors appearance-none" 
+                  >
+                    <option value="" disabled>Sélectionnez un secteur</option>
+                    {allIndustries.map((ind, i) => (
+                      <option key={i} value={ind}>{ind}</option>
+                    ))}
+                    <option value="autre">Autre (préciser)...</option>
+                  </select>
+                </div>
+                {showCustomIndustry && (
+                  <div className="mt-3">
+                    <input 
+                      type="text" 
+                      value={settings.industry || ""}
+                      onChange={(e) => setSettings({...settings, industry: e.target.value})}
+                      placeholder="Tapez votre secteur d'activité"
+                      className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors" 
+                      autoFocus
+                    />
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Numéro d'immatriculation / NINEA</label>
                 <input 

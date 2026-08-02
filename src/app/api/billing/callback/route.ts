@@ -54,12 +54,18 @@ export async function GET(request: Request) {
     }
 
     if (companyId && plan) {
-      // Récupérer l'entreprise pour vérifier sa date d'expiration actuelle
+      // Récupérer l'entreprise pour vérifier sa date d'expiration actuelle et son dernier paiement
       const { data: currentCompany } = await supabase
         .from('companies')
-        .select('subscription_end_date, subscription_status')
+        .select('subscription_end_date, subscription_status, last_stripe_session_id')
         .eq('id', companyId)
         .single();
+
+      // Sécurité: Empêcher le "Replay Attack" d'une ancienne session Stripe
+      if (currentCompany?.last_stripe_session_id === session_id) {
+        console.warn("Tentative de rejeu d'une session Stripe déjà traitée:", session_id);
+        return NextResponse.redirect(new URL('/settings?payment=already_processed', request.url));
+      }
 
       // Calculer la date d'expiration
       let baseDate = new Date();
@@ -84,7 +90,8 @@ export async function GET(request: Request) {
           subscription_plan: plan,
           subscription_status: 'Actif',
           billing_cycle: cycle,
-          subscription_end_date: endDate.toISOString()
+          subscription_end_date: endDate.toISOString(),
+          last_stripe_session_id: session_id
         })
         .eq('id', companyId);
 

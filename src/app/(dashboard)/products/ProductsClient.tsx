@@ -536,7 +536,7 @@ export default function ProductsClient({
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Stock Actuel</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{productToView.stock} {productToView.unit}</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{productToView.stock} {productToView.stock > 1 ? `${productToView.unit}s` : productToView.unit}</p>
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Prix de Vente</p>

@@ -165,7 +165,7 @@ export function AdminDashboardClient({ initialMetrics }: { initialMetrics: any }
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {periodMetrics.newMrr.toLocaleString('fr-FR')} FCFA
+            {periodMetrics.newMrr.toLocaleString('fr-FR')} XAF
           </p>
         </div>
 

@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Application de gestion de stocks",
 };
 
+import { VersionChecker } from "@/components/VersionChecker";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,6 +33,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
+        <VersionChecker />
         <Toaster position="top-right" />
         <Analytics />
       </body>

@@ -11,6 +11,14 @@ export default async function StockMovementsPage() {
     redirect('/auth/login');
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', user.id)
+    .single();
+
+  const companyId = profile?.company_id;
+
   // Fetch all movements
   const { data: movementsData } = await supabase
     .from('stock_movements')
@@ -19,6 +27,7 @@ export default async function StockMovementsPage() {
       products (name),
       profiles (full_name)
     `)
+    .eq('company_id', companyId)
     .order('created_at', { ascending: false });
 
   const formattedMovements = movementsData?.map((m: any) => ({

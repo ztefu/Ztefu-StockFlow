@@ -11,9 +11,19 @@ export default async function CategoriesPage() {
   // Since we don't have a direct count column, we can either fetch all and count, 
   // or just fetch categories for now and default count to 0 if not easily joined.
   // We can do a join: select('*, products(count)')
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id, companies(industry)')
+    .eq('id', user?.id)
+    .single()
+
+  const companyInfo = Array.isArray(profile?.companies) ? profile?.companies[0] : profile?.companies
+  const companyIndustry = companyInfo?.industry || null
+
   const { data: categories, error } = await supabase
     .from('categories')
     .select('*, products(count)')
+    .eq('company_id', profile?.company_id)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -29,6 +39,6 @@ export default async function CategoriesPage() {
   })) || []
 
   return (
-    <CategoriesClient initialCategories={formattedCategories} userRole={userRole} />
+    <CategoriesClient initialCategories={formattedCategories} userRole={userRole} companyIndustry={companyIndustry} />
   )
 }

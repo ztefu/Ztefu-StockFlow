@@ -11,6 +11,14 @@ export default async function StockEntriesPage() {
     redirect('/auth/login');
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('company_id')
+    .eq('id', user.id)
+    .single();
+
+  const companyId = profile?.company_id;
+
   // Fetch products and movements in parallel
   const [
     { data: productsData },
@@ -18,7 +26,8 @@ export default async function StockEntriesPage() {
   ] = await Promise.all([
     supabase
       .from('products')
-      .select('id, name, stock_actuel'),
+      .select('id, name, stock_actuel')
+      .eq('company_id', companyId),
     supabase
       .from('stock_movements')
       .select(`
@@ -27,6 +36,7 @@ export default async function StockEntriesPage() {
         profiles (full_name)
       `)
       .eq('type', 'in')
+      .eq('company_id', companyId)
       .order('created_at', { ascending: false })
   ]);
 

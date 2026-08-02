@@ -97,7 +97,9 @@ export async function createProduct(formData: FormData) {
     image_url = data.publicUrl
   }
 
-  const { error } = await supabase
+  const finalStockActuel = isNaN(stock_actuel) ? 0 : stock_actuel;
+
+  const { data: newProduct, error } = await supabase
     .from('products')
     .insert([{ 
       name, 
@@ -105,14 +107,30 @@ export async function createProduct(formData: FormData) {
       company_id: profile.company_id,
       price: isNaN(price) ? 0 : price, 
       purchase_price: isNaN(purchase_price) ? 0 : purchase_price,
-      stock_actuel: isNaN(stock_actuel) ? 0 : stock_actuel, 
+      stock_actuel: 0, // Set to 0, the stock movement trigger will add the initial quantity
       stock_min: isNaN(stock_min) ? 0 : stock_min, 
       sku,
       image_url
     }])
+    .select()
+    .single();
 
   if (error) {
     return { error: error.message }
+  }
+
+  // If initial stock is greater than 0, create a stock movement
+  if (finalStockActuel > 0 && newProduct) {
+    await supabase.from('stock_movements').insert([{
+      product_id: newProduct.id,
+      user_id: userData.user.id,
+      type: 'in',
+      quantity: finalStockActuel,
+      date: new Date().toISOString().split('T')[0],
+      observation: 'Stock initial',
+      status: 'completed',
+      company_id: profile.company_id
+    }]);
   }
 
   revalidatePath('/products')
@@ -297,7 +315,7 @@ export async function importProductsCSV(productsData: any[]) {
       category_id,
       price: parseFloat(row['Prix Vente'] || 0) || 0,
       purchase_price: parseFloat(row['Prix Achat'] || 0) || 0,
-      stock_actuel: parseInt(row['Stock Actuel'] || 0) || 0,
+      stock_actuel: 0, // Set to 0, trigger will add initial stock
       stock_min: parseInt(row['Stock Min'] || 0) || 0,
     });
   }
@@ -306,13 +324,40 @@ export async function importProductsCSV(productsData: any[]) {
     return { error: "Aucun produit valide à importer.", details: errors };
   }
 
-  const { error: insertError } = await supabase
+  const { data: insertedProducts, error: insertError } = await supabase
     .from('products')
-    .insert(productsToInsert);
+    .insert(productsToInsert)
+    .select();
 
   if (insertError) {
     console.error("Erreur d'import:", insertError);
     return { error: "Erreur lors de l'insertion dans la base de données." };
+  }
+
+  if (insertedProducts && insertedProducts.length > 0) {
+    const movementsToInsert = insertedProducts
+      .map((p: any, index: number) => {
+        // We need the original requested stock from productsToInsert to create the movement
+        const requestedStock = parseInt(productsData[index]['Stock Actuel'] || 0) || 0;
+        if (requestedStock > 0) {
+          return {
+            product_id: p.id,
+            user_id: userData.user.id,
+            type: 'in',
+            quantity: requestedStock,
+            date: new Date().toISOString().split('T')[0],
+            observation: 'Stock initial (Import CSV)',
+            status: 'completed',
+            company_id: profile.company_id
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    if (movementsToInsert.length > 0) {
+      await supabase.from('stock_movements').insert(movementsToInsert as any[]);
+    }
   }
 
   revalidatePath('/products');

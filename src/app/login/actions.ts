@@ -58,6 +58,7 @@ export async function signup(formData: FormData) {
   const companyName = formData.get('company_name') as string;
   const fullName = formData.get('full_name') as string;
   const email = formData.get('email') as string;
+  const industry = formData.get('industry') as string;
   
   const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
   const isSuperAdmin = adminEmails.includes(email.toLowerCase());
@@ -68,7 +69,8 @@ export async function signup(formData: FormData) {
     .insert([{ 
       name: companyName,
       subscription_plan: isSuperAdmin ? 'Business' : 'Gratuit',
-      subscription_status: 'Actif'
+      subscription_status: 'Actif',
+      industry: industry || null
     }])
     .select('id')
     .single();

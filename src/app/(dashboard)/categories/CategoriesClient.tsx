@@ -14,7 +14,7 @@ interface Category {
   productCount: number;
 }
 
-export default function CategoriesClient({ initialCategories, userRole }: { initialCategories: Category[], userRole?: string }) {
+export default function CategoriesClient({ initialCategories, userRole, companyIndustry }: { initialCategories: Category[], userRole?: string, companyIndustry?: string | null }) {
   const canEdit = userRole === 'Administrateur' || userRole === 'Gestionnaire';
   const { limits } = useSubscription();
   const reachedCategoryLimit = initialCategories.length >= limits.maxCategories;
@@ -33,12 +33,17 @@ export default function CategoriesClient({ initialCategories, userRole }: { init
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (newCategoryName.length >= 2 && showSuggestions) {
-        const { data } = await supabase
+        let query = supabase
           .from('categories')
           .select('*')
           .is('company_id', null)
-          .ilike('name', `%${newCategoryName}%`)
-          .limit(5);
+          .ilike('name', `%${newCategoryName}%`);
+          
+        if (companyIndustry) {
+          query = query.eq('industry', companyIndustry);
+        }
+        
+        const { data } = await query.limit(5);
         setGlobalSuggestions(data || []);
       } else {
         setGlobalSuggestions([]);

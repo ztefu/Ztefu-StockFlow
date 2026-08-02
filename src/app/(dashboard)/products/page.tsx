@@ -52,7 +52,7 @@ export default async function ProductsPage() {
     unit: 'Pièce', // default unit
     stock: p.stock_actuel,
     minStock: p.stock_min,
-    status: p.stock_actuel <= 0 ? "Rupture" : p.stock_actuel <= p.stock_min ? "Faible" : "En stock",
+    status: p.stock_actuel <= 0 ? "out_of_stock" : p.stock_actuel <= p.stock_min ? "low_stock" : "in_stock",
     sku: p.sku,
     image_url: p.image_url
   })) || []

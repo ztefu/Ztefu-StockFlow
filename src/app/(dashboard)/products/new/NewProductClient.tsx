@@ -14,7 +14,7 @@ interface Category {
   name: string;
 }
 
-export default function NewProductClient({ categories }: { categories: Category[] }) {
+export default function NewProductClient({ categories, companyIndustry }: { categories: Category[], companyIndustry?: string | null }) {
   const router = useRouter();
   const supabase = createClient();
   const [isPending, startTransition] = useTransition();
@@ -31,12 +31,17 @@ export default function NewProductClient({ categories }: { categories: Category[
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (productName.length >= 3 && showSuggestions) {
-        const { data } = await supabase
+        let query = supabase
           .from('products')
           .select('*')
           .is('company_id', null)
-          .ilike('name', `%${productName}%`)
-          .limit(5);
+          .ilike('name', `%${productName}%`);
+
+        if (companyIndustry) {
+          query = query.eq('industry', companyIndustry);
+        }
+
+        const { data } = await query.limit(5);
         setGlobalSuggestions(data || []);
       } else {
         setGlobalSuggestions([]);
@@ -212,7 +217,7 @@ export default function NewProductClient({ categories }: { categories: Category[
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Tarification & Stock</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prix d'achat (FCFA) *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prix d'achat (XAF) *</label>
                 <input 
                   type="number"
                   step="0.01"
@@ -222,7 +227,7 @@ export default function NewProductClient({ categories }: { categories: Category[
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prix de vente (FCFA) *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prix de vente (XAF) *</label>
                 <input 
                   type="number" 
                   step="0.01"

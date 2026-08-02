@@ -22,7 +22,7 @@ export function LowStockList({ products }: LowStockListProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">{product.name}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Min: {product.minStock} {product.unit}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Min: {product.minStock} {product.minStock > 1 ? `${product.unit}s` : product.unit}</p>
                 </div>
               </div>
               <div className="text-right">

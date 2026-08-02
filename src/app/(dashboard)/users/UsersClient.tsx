@@ -267,7 +267,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
                   value={newPhone}
                   onChange={(e) => setNewPhone(e.target.value)}
                   disabled={isSubmitting}
-                  placeholder="+225 00 00 00 00 00" 
+                  placeholder="+237 600 00 00 00" 
                   className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors disabled:opacity-50" 
                 />
               </div>

@@ -10,7 +10,7 @@ export default async function SettingsPage() {
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('company_id, is_super_admin, companies(subscription_plan, subscription_status, subscription_end_date, billing_cycle)')
+    .select('company_id, is_super_admin, companies(subscription_plan, subscription_status, subscription_end_date, billing_cycle, industry)')
     .eq('id', userData.user.id)
     .single();
 
@@ -73,6 +73,27 @@ export default async function SettingsPage() {
   const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
   const isSuperAdmin = profile?.is_super_admin || (userData.user.email && adminEmails.includes(userData.user.email.toLowerCase()));
 
+  const { data: companiesData } = await supabase.from('companies').select('industry').not('industry', 'is', null)
+  
+  const PREDEFINED_INDUSTRIES = [
+    'Électronique & Informatique',
+    'Prêt-à-porter & Mode',
+    'Alimentaire & Supermarché',
+    'Santé & Beauté',
+    'Maison & Décoration',
+    'Bricolage & Matériaux',
+    'Quincaillerie',
+    'Automobile & Moto',
+    'Électroménager',
+    'Restauration / HORECA',
+    'Agriculture & Élevage',
+    'Fournitures de Bureau & Papeterie',
+    'Bébés & Enfants',
+    'Sport & Loisirs'
+  ];
+  const customIndustries = (companiesData || []).map(c => c.industry)
+  const allIndustries = Array.from(new Set([...PREDEFINED_INDUSTRIES, ...customIndustries]))
+
   const enrichedSettings = {
     ...(settings || {}),
     subscription_plan: companyInfo?.subscription_plan || 'Gratuit',
@@ -80,6 +101,7 @@ export default async function SettingsPage() {
     subscription_end_date: companyInfo?.subscription_end_date || null,
     billing_cycle: companyInfo?.billing_cycle || null,
     is_super_admin: isSuperAdmin,
+    industry: companyInfo?.industry || '',
     usage: {
       users: usersCount || 0,
       products: productsCount || 0,
@@ -88,5 +110,5 @@ export default async function SettingsPage() {
     }
   };
 
-  return <SettingsClient initialSettings={enrichedSettings} />;
+  return <SettingsClient initialSettings={enrichedSettings} allIndustries={allIndustries} />;
 }

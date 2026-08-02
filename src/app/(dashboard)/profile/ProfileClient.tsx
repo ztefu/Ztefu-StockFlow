@@ -22,7 +22,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
   const [profile, setProfile] = useState({
     name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Utilisateur",
     email: user?.email || "",
-    phone: user?.user_metadata?.phone || "+225 00 00 00 00 00", // placeholder si pas de téléphone
+    phone: user?.user_metadata?.phone || "+237 600 00 00 00", // placeholder si pas de téléphone
     role: user?.user_metadata?.role || "Utilisateur",
     bio: user?.user_metadata?.bio || "Aucune biographie renseignée.",
     avatarUrl: user?.user_metadata?.avatar_url || ""
@@ -298,7 +298,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
                       setProfile({
                         name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Utilisateur",
                         email: user?.email || "",
-                        phone: user?.user_metadata?.phone || "+225 00 00 00 00 00",
+                        phone: user?.user_metadata?.phone || "+237 600 00 00 00",
                         role: user?.user_metadata?.role || "Utilisateur",
                         bio: user?.user_metadata?.bio || "Aucune biographie renseignée.",
                         avatarUrl: user?.user_metadata?.avatar_url || ""

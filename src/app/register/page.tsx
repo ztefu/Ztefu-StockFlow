@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
 import { PasswordInput } from '@/components/ui/password-input'
 import { SubmitButton } from '@/app/login/submit-button'
-import { UserPlus, Rocket, Star } from 'lucide-react'
+import { UserPlus, Rocket, Star, Building2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { IndustrySelect } from './IndustrySelect'
 
 export default async function RegisterPage({
   searchParams,
@@ -15,6 +17,29 @@ export default async function RegisterPage({
   const message = resolvedParams.message
   const plan = resolvedParams.plan || 'Gratuit'
   const cycle = resolvedParams.cycle || 'monthly'
+
+  const supabase = await createClient()
+  const { data: companies } = await supabase.from('companies').select('industry').not('industry', 'is', null)
+  
+  const PREDEFINED_INDUSTRIES = [
+    'Électronique & Informatique',
+    'Prêt-à-porter & Mode',
+    'Alimentaire & Supermarché',
+    'Santé & Beauté',
+    'Maison & Décoration',
+    'Bricolage & Matériaux',
+    'Quincaillerie',
+    'Automobile & Moto',
+    'Électroménager',
+    'Restauration / HORECA',
+    'Agriculture & Élevage',
+    'Fournitures de Bureau & Papeterie',
+    'Bébés & Enfants',
+    'Sport & Loisirs'
+  ];
+  
+  const customIndustries = (companies || []).map(c => c.industry)
+  const allIndustries = Array.from(new Set([...PREDEFINED_INDUSTRIES, ...customIndustries]))
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white dark:bg-gray-900 selection:bg-primary/30">
@@ -91,6 +116,8 @@ export default async function RegisterPage({
                 placeholder="Ma Super Entreprise"
               />
             </div>
+
+            <IndustrySelect allIndustries={allIndustries} />
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">

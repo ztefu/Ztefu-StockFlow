@@ -13,13 +13,15 @@ import {
   XCircle, 
   ArrowDownToLine, 
   ArrowUpFromLine,
-  X
+  X,
+  Banknote
 } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface DashboardClientProps {
   stats: {
     totalStockValue: number;
+    totalPotentialRevenue: number;
     totalProducts: number;
     lowStockItems: number;
     outOfStockItems: number;
@@ -70,11 +72,16 @@ export function DashboardClient({
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
-          title="Valeur Totale du Stock" 
+          title="Valeur Totale (Achat)" 
           value={`${stats.totalStockValue.toLocaleString("fr-FR")} XAF`} 
           icon={Wallet}
+        />
+        <StatCard 
+          title="C.A Potentiel (Vente)" 
+          value={`${stats.totalPotentialRevenue.toLocaleString("fr-FR")} XAF`} 
+          icon={Banknote}
         />
         <StatCard 
           title="Total Produits Actifs" 
