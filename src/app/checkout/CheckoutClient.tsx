@@ -14,6 +14,7 @@ interface CheckoutClientProps {
 }
 
 export function CheckoutClient({ plan, price, cycle }: CheckoutClientProps) {
+  const [paymentMethod, setPaymentMethod] = useState<'chariow' | 'stripe'>('chariow');
   const [acceptedCGU, setAcceptedCGU] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -25,16 +26,25 @@ export function CheckoutClient({ plan, price, cycle }: CheckoutClientProps) {
     const toastId = toast.loading("Génération du lien de paiement...");
 
     try {
-      const res = await fetch('/api/billing/stripe', {
+      const endpoint = paymentMethod === 'stripe' ? '/api/billing/stripe' : '/api/billing/chariow';
+      
+      // We pass companyId for Chariow, but we don't have it directly in props here.
+      // Wait, let's just pass plan and price. The API can extract companyId from the session if needed.
+      // But we made /api/billing/chariow require companyId in the body...
+      // Let's modify the body to pass plan, price, cycle.
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan, price, cycle })
       });
       const data = await res.json();
 
-      if (data.link) {
-        window.location.href = data.link;
+      const redirectUrl = data.link || data.url || data.checkout_url;
+
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
       } else {
+        console.error("API response missing link:", data);
         toast.error("Impossible de générer le lien de paiement", { id: toastId });
         setIsLoading(false);
       }
@@ -46,8 +56,16 @@ export function CheckoutClient({ plan, price, cycle }: CheckoutClientProps) {
   };
 
   return (
-    <>
-      <button
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white dark:bg-gray-900 selection:bg-primary/30">
+      {/* Left Section - Form */}
+      <div className="w-full flex-1 lg:flex-none lg:w-1/3 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative bg-gray-50 lg:bg-white dark:bg-gray-900 z-10 lg:border-r lg:border-gray-100 lg:dark:border-gray-800">
+        {/* Mobile Background Decoration */}
+        <div className="absolute inset-0 lg:hidden overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-0 right-0 w-full h-1/2 bg-gradient-to-b from-primary/10 to-transparent blur-3xl opacity-60"></div>
+        </div>
+
+        <div className="w-full max-w-lg bg-white dark:bg-dark-surface lg:bg-transparent lg:dark:bg-transparent lg:shadow-none lg:border-none rounded-2xl shadow-xl border border-white/20 dark:border-gray-800/50 p-6 sm:p-8 z-10 relative">
+          <button
         onClick={() => router.back()}
         className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors mb-10 w-fit"
       >
@@ -85,16 +103,38 @@ export function CheckoutClient({ plan, price, cycle }: CheckoutClientProps) {
       </div>
 
       <div className="space-y-6">
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-5 flex gap-4 text-sm text-blue-800 dark:text-blue-300 shadow-sm">
-          <ShieldCheck className="w-6 h-6 flex-shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
-          <div className="leading-relaxed">
-            <p className="font-bold mb-2 text-base">Moyens de paiement acceptés</p>
-            <p>Le paiement est traité par Stripe. Outre les cartes bancaires classiques (Visa, Mastercard), vous pouvez payer avec votre compte <strong>MTN Mobile Money</strong> ou <strong>Orange Money</strong>.</p>
-            <p className="mt-2 text-blue-700 dark:text-blue-200">
-              <CheckCircle2 className="inline w-4 h-4 mr-1 text-blue-600 dark:text-blue-400" />
-              Générez simplement une <strong>carte bancaire virtuelle</strong> depuis l&apos;application de votre opérateur et insérez-la sur la page de paiement Stripe.
-            </p>
-          </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm space-y-4">
+          <p className="font-bold text-gray-900 dark:text-white mb-2">Choisissez votre méthode de paiement</p>
+          
+          <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'chariow' ? 'border-primary bg-primary/5' : 'border-gray-100 dark:border-gray-700 hover:border-primary/50'}`}>
+            <input 
+              type="radio" 
+              name="paymentMethod" 
+              value="chariow" 
+              checked={paymentMethod === 'chariow'} 
+              onChange={() => setPaymentMethod('chariow')}
+              className="w-5 h-5 text-primary focus:ring-primary border-gray-300"
+            />
+            <div className="flex flex-col">
+              <span className="font-bold text-gray-900 dark:text-white">Mobile Money (Chariow)</span>
+              <span className="text-sm text-gray-500">Payer directement avec MTN, Orange Money ou Wave.</span>
+            </div>
+          </label>
+
+          <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === 'stripe' ? 'border-primary bg-primary/5' : 'border-gray-100 dark:border-gray-700 hover:border-primary/50'}`}>
+            <input 
+              type="radio" 
+              name="paymentMethod" 
+              value="stripe" 
+              checked={paymentMethod === 'stripe'} 
+              onChange={() => setPaymentMethod('stripe')}
+              className="w-5 h-5 text-primary focus:ring-primary border-gray-300"
+            />
+            <div className="flex flex-col">
+              <span className="font-bold text-gray-900 dark:text-white">Carte Bancaire (Stripe)</span>
+              <span className="text-sm text-gray-500">Payer par carte Visa, Mastercard, etc.</span>
+            </div>
+          </label>
         </div>
 
         <label className="flex items-start gap-4 cursor-pointer group p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
@@ -117,7 +157,7 @@ export function CheckoutClient({ plan, price, cycle }: CheckoutClientProps) {
           className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all text-base ${acceptedCGU
             ? 'bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/30 hover:shadow-primary/40 active:scale-[0.98]'
             : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 cursor-not-allowed border border-gray-200 dark:border-gray-700'
-            }`}
+          }`}
         >
           {isLoading ? (
             <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -126,6 +166,80 @@ export function CheckoutClient({ plan, price, cycle }: CheckoutClientProps) {
           )}
         </button>
       </div>
-    </>
+        </div>
+      </div>
+
+      {/* Right Section - Graphic / Illustration */}
+      <div className="hidden lg:flex lg:w-2/3 relative bg-gray-50/50 dark:bg-gray-900 flex-col justify-center items-center overflow-hidden">
+        {/* Background Gradients */}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-bl from-primary/10 via-transparent to-primary/5 blur-3xl opacity-60 -z-10"></div>
+        <div className="absolute bottom-0 right-0 w-1/3 h-2/3 bg-gradient-to-tl from-blue-400/10 to-transparent blur-3xl -z-10"></div>
+
+        <div className="w-full max-w-2xl p-8 relative z-10 flex flex-col items-center text-center">
+          {paymentMethod === 'stripe' ? (
+            <>
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">Paiement Simple et Sécurisé.</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400 mb-16">Réglez votre abonnement en toute sécurité avec Stripe. Vous pouvez utiliser votre carte bancaire classique ou les cartes virtuelles générées via vos opérateurs locaux.</p>
+
+              <div className="flex gap-6 items-center justify-center bg-white/50 dark:bg-gray-800/50 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 backdrop-blur-md shadow-2xl relative">
+                <div className="absolute -top-6 -left-6 w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center animate-bounce shadow-lg">
+                  <span className="text-green-600 dark:text-green-400 text-xl font-bold">✓</span>
+                </div>
+                <div className="absolute -bottom-6 -right-6 w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center animate-pulse shadow-lg">
+                  <span className="text-blue-600 dark:text-blue-400 text-2xl font-bold">🔒</span>
+                </div>
+
+                <div className="flex flex-col items-center gap-4 hover:-translate-y-2 transition-transform duration-300">
+                  <div className="w-24 h-24 bg-[#FFCC00] rounded-3xl flex items-center justify-center text-[#000000] font-bold text-3xl shadow-xl border border-white/30">MTN</div>
+                  <span className="text-base font-bold text-gray-700 dark:text-gray-300">MoMo</span>
+                </div>
+                <div className="text-gray-400 px-4 text-3xl font-light">+</div>
+                <div className="flex flex-col items-center gap-4 hover:-translate-y-2 transition-transform duration-300">
+                  <div className="w-24 h-24 bg-[#FF6600] rounded-3xl flex items-center justify-center text-white font-bold text-2xl shadow-xl border border-white/30">Orange</div>
+                  <span className="text-base font-bold text-gray-700 dark:text-gray-300">Money</span>
+                </div>
+                <div className="text-gray-400 px-4 text-3xl font-light">=</div>
+                <div className="flex flex-col items-center gap-4 hover:-translate-y-2 transition-transform duration-300">
+                  <div className="w-24 h-24 bg-[#635BFF] rounded-3xl flex items-center justify-center text-white font-bold text-4xl shadow-xl border border-white/30">S</div>
+                  <span className="text-base font-bold text-gray-700 dark:text-gray-300">Stripe</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">Mobile Money Rapide & Direct.</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400 mb-16">Payez en quelques secondes avec votre compte Mobile Money. Aucun besoin de carte bancaire, validez directement depuis votre téléphone mobile !</p>
+
+              <div className="flex gap-6 items-center justify-center bg-white/50 dark:bg-gray-800/50 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 backdrop-blur-md shadow-2xl relative">
+                <div className="absolute -top-6 -right-6 w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center animate-bounce shadow-lg">
+                  <span className="text-primary text-xl font-bold">⚡</span>
+                </div>
+                <div className="absolute -bottom-6 -left-6 w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center animate-pulse shadow-lg">
+                  <span className="text-green-600 dark:text-green-400 text-2xl font-bold">📱</span>
+                </div>
+
+                <div className="flex flex-col items-center gap-4 hover:-translate-y-2 transition-transform duration-300">
+                  <div className="w-24 h-24 bg-[#FFCC00] rounded-3xl flex items-center justify-center text-[#000000] font-bold text-3xl shadow-xl border border-white/30">MTN</div>
+                  <span className="text-base font-bold text-gray-700 dark:text-gray-300">MoMo</span>
+                </div>
+                <div className="text-gray-400 px-4 text-3xl font-light">OU</div>
+                <div className="flex flex-col items-center gap-4 hover:-translate-y-2 transition-transform duration-300">
+                  <div className="w-24 h-24 bg-[#FF6600] rounded-3xl flex items-center justify-center text-white font-bold text-2xl shadow-xl border border-white/30">Orange</div>
+                  <span className="text-base font-bold text-gray-700 dark:text-gray-300">Money</span>
+                </div>
+                <div className="text-gray-400 px-4 text-3xl font-light">👉</div>
+                <div className="flex flex-col items-center gap-4 hover:-translate-y-2 transition-transform duration-300">
+                  <div className="w-24 h-24 bg-gray-900 dark:bg-black rounded-3xl flex items-center justify-center text-white font-bold text-2xl shadow-xl border border-white/30">
+                    <span className="text-[#00C2FF]">C</span>
+                    <span className="text-white">hariow</span>
+                  </div>
+                  <span className="text-base font-bold text-gray-700 dark:text-gray-300">Instantané</span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

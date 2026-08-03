@@ -212,6 +212,18 @@ export function SettingsClient({ initialSettings, allIndustries = [] }: Settings
   };
 
   const handleUpgrade = async (plan: string, price: number, cycle: 'monthly' | 'annual' = 'monthly') => {
+    // Vérifier si le téléphone est renseigné et valide
+    let rawPhone = settings.phone || "";
+    rawPhone = rawPhone.replace(/\D/g, "");
+    if (rawPhone.startsWith("237")) {
+      rawPhone = rawPhone.substring(3);
+    }
+    
+    if (rawPhone.length !== 9) {
+      toast.error("Veuillez renseigner et enregistrer un numéro de téléphone valide (9 chiffres) dans les paramètres avant de souscrire.");
+      return;
+    }
+
     // Redirection vers la page de checkout intermédiaire
     const searchParams = new URLSearchParams({
       plan,
