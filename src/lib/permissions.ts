@@ -1,6 +1,7 @@
 // Map of roles to allowed paths
 export const rolePermissions = {
-  Administrateur: ["*"], // Super user, has access to everything
+  Administrateur: ["*"], // Admin de l'entreprise
+  "Super Admin": ["*"], // Super Admin global de la plateforme
   Gestionnaire: [
     "/dashboard",
     "/products",

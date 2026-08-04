@@ -27,7 +27,8 @@ import {
   BarChart3,
   Building2,
   Globe,
-  Sparkles
+  Sparkles,
+  Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import toast from "react-hot-toast";
@@ -74,6 +75,7 @@ const menuItems = [
       { label: "SaaS Dashboard", icon: BarChart3, href: "/admin/dashboard" },
       { label: "Entreprises", icon: Building2, href: "/admin/companies" },
       { label: "Catalogue Global", icon: Globe, href: "/admin/catalog" },
+      { label: "Notifications", icon: Bell, href: "/admin/notifications" },
     ]
   }
 ];

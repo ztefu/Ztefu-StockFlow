@@ -14,9 +14,7 @@ export default async function SettingsPage() {
     .eq('id', userData.user.id)
     .single();
 
-  if (profile?.is_super_admin) {
-    redirect('/admin/dashboard');
-  }
+  // Les Super Admins peuvent accéder à la page Paramètres sans être redirigés
 
   const companyId = profile?.company_id;
   if (!companyId) {
