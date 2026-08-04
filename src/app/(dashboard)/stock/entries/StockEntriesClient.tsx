@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Plus, Search, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import toast from "react-hot-toast";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -14,6 +14,8 @@ export default function StockEntriesClient({
   initialEntries: any[] 
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   const [isPending, startTransition] = useTransition();
   
   // Form state
@@ -22,11 +24,30 @@ export default function StockEntriesClient({
   const [fournisseur, setFournisseur] = useState("");
   const [remarque, setRemarque] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [unitPrice, setUnitPrice] = useState("");
+
+  const selectedProduct = products.find(p => p.id === selectedProductId);
+
+  useEffect(() => {
+    if (selectedProduct) {
+      setUnitPrice(selectedProduct.purchase_price?.toString() || "");
+    } else {
+      setUnitPrice("");
+    }
+  }, [selectedProduct]);
 
   const entries = initialEntries.filter(entry => 
     entry.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (entry.user_name && entry.user_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (entry.fournisseur && entry.fournisseur.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const totalPages = Math.max(1, Math.ceil(entries.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const paginatedEntries = entries.slice(
+    (validCurrentPage - 1) * ITEMS_PER_PAGE, 
+    validCurrentPage * ITEMS_PER_PAGE
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -46,6 +67,7 @@ export default function StockEntriesClient({
       formData.append('date', date);
       if (fournisseur) formData.append('fournisseur', fournisseur);
       if (remarque) formData.append('remarque', remarque);
+      if (unitPrice) formData.append('unit_price', unitPrice);
 
       const res = await createStockEntry(formData);
       
@@ -58,6 +80,7 @@ export default function StockEntriesClient({
         setQuantity("");
         setFournisseur("");
         setRemarque("");
+        setUnitPrice("");
         setDate(new Date().toISOString().split('T')[0]);
       }
     });
@@ -115,7 +138,14 @@ export default function StockEntriesClient({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prix d'achat unitaire</label>
-                <input type="number" placeholder="0 XAF" className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors" disabled={isPending} />
+                <input 
+                  type="number" 
+                  value={unitPrice}
+                  onChange={(e) => setUnitPrice(e.target.value)}
+                  placeholder="0 XAF" 
+                  className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors" 
+                  disabled={isPending} 
+                />
               </div>
 
               <div>
@@ -174,17 +204,21 @@ export default function StockEntriesClient({
                     <th className="px-6 py-4 font-medium">Date</th>
                     <th className="px-6 py-4 font-medium">Produit</th>
                     <th className="px-6 py-4 font-medium">Quantité</th>
+                    <th className="px-6 py-4 font-medium">Prix Achat</th>
                     <th className="px-6 py-4 font-medium">Fournisseur</th>
                     <th className="px-6 py-4 font-medium">Utilisateur</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {entries.map((entry) => (
+                  {paginatedEntries.map((entry) => (
                     <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-6 py-4 text-sm text-gray-500">{new Date(entry.date).toLocaleDateString('fr-FR')}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{entry.product_name}</td>
                       <td className="px-6 py-4 text-sm font-bold text-green-600 dark:text-green-500">
                         +{entry.quantity} {entry.quantity > 1 ? `${entry.unit}s` : entry.unit}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">
+                        {entry.unit_price ? `${entry.unit_price} XAF` : '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{entry.fournisseur || "-"}</td>
                       <td className="px-6 py-4 text-sm text-gray-500">{entry.user_name || "Système"}</td>
@@ -192,7 +226,7 @@ export default function StockEntriesClient({
                   ))}
                   {entries.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                         Aucune entrée trouvée.
                       </td>
                     </tr>
@@ -203,7 +237,7 @@ export default function StockEntriesClient({
 
             {/* Mobile Card View */}
             <div className="grid grid-cols-1 gap-4 md:hidden p-4">
-              {entries.map((entry) => (
+              {paginatedEntries.map((entry) => (
                 <div key={entry.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -216,7 +250,11 @@ export default function StockEntriesClient({
                     </span>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                      <p className="text-[11px] text-gray-500 mb-0.5">Prix</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{entry.unit_price ? `${entry.unit_price} XAF` : '-'}</p>
+                    </div>
                     <div>
                       <p className="text-[11px] text-gray-500 mb-0.5">Fournisseur</p>
                       <p className="text-sm text-gray-900 dark:text-white truncate">{entry.fournisseur || "-"}</p>
@@ -228,12 +266,34 @@ export default function StockEntriesClient({
                   </div>
                 </div>
               ))}
-              {entries.length === 0 && (
+              {paginatedEntries.length === 0 && (
                 <div className="text-center py-8 text-gray-500 text-sm">
                   Aucune entrée trouvée.
                 </div>
               )}
             </div>
+
+            {paginatedEntries.length > 0 && (
+              <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
+                <div>Affichage de {(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedEntries.length > 0 ? 1 : 0)} à {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedEntries.length} sur {entries.length} entrées</div>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={validCurrentPage === 1}
+                    className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    Précédent
+                  </button>
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={validCurrentPage === totalPages}
+                    className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

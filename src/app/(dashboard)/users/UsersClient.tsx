@@ -35,6 +35,8 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
   }, [initialUsers]);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   
   // Form state
   const [newName, setNewName] = useState("");
@@ -59,6 +61,14 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
     user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.role?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const paginatedUsers = filteredUsers.slice(
+    (validCurrentPage - 1) * ITEMS_PER_PAGE, 
+    validCurrentPage * ITEMS_PER_PAGE
   );
 
   const handleAddUser = async (e: React.FormEvent) => {
@@ -332,7 +342,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {filteredUsers.map((user) => (
+                  {paginatedUsers.map((user) => (
                     <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -389,7 +399,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
 
             {/* Mobile Card View */}
             <div className="grid grid-cols-1 gap-4 md:hidden p-4">
-              {filteredUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <div key={user.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
@@ -445,9 +455,31 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
                 </div>
               ))}
             </div>
-            {filteredUsers.length === 0 && (
+            {paginatedUsers.length === 0 && (
               <div className="p-8 text-center text-gray-500 text-sm">
                 Aucun utilisateur trouvé.
+              </div>
+            )}
+
+            {paginatedUsers.length > 0 && (
+              <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
+                <div>Affichage de {(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedUsers.length > 0 ? 1 : 0)} à {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedUsers.length} sur {filteredUsers.length} utilisateurs</div>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={validCurrentPage === 1}
+                    className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    Précédent
+                  </button>
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={validCurrentPage === totalPages}
+                    className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    Suivant
+                  </button>
+                </div>
               </div>
             )}
           </div>

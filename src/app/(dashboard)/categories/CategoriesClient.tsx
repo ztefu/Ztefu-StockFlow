@@ -20,6 +20,8 @@ export default function CategoriesClient({ initialCategories, userRole, companyI
   const reachedCategoryLimit = initialCategories.length >= limits.maxCategories;
   
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   const [isPending, startTransition] = useTransition();
   const supabase = createClient();
   
@@ -68,6 +70,14 @@ export default function CategoriesClient({ initialCategories, userRole, companyI
     const matchesDesc = category.description ? category.description.toLowerCase().includes(searchQuery.toLowerCase()) : false;
     return matchesName || matchesDesc;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredCategories.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const paginatedCategories = filteredCategories.slice(
+    (validCurrentPage - 1) * ITEMS_PER_PAGE, 
+    validCurrentPage * ITEMS_PER_PAGE
+  );
 
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,7 +263,7 @@ export default function CategoriesClient({ initialCategories, userRole, companyI
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {filteredCategories.map((category) => (
+                  {paginatedCategories.map((category) => (
                     <tr key={category.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="text-sm font-medium text-gray-900 dark:text-white">{category.name}</span>
@@ -286,7 +296,7 @@ export default function CategoriesClient({ initialCategories, userRole, companyI
 
             {/* Mobile Card View */}
             <div className="grid grid-cols-1 gap-4 md:hidden p-4">
-              {filteredCategories.map((category) => (
+              {paginatedCategories.map((category) => (
                 <div key={category.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-sm font-bold text-gray-900 dark:text-white">{category.name}</h4>
@@ -308,10 +318,32 @@ export default function CategoriesClient({ initialCategories, userRole, companyI
                   )}
                 </div>
               ))}
+              {paginatedCategories.length === 0 && (
+                <div className="p-8 text-center text-gray-500 text-sm">
+                  Aucune catégorie trouvée.
+                </div>
+              )}
             </div>
-            {filteredCategories.length === 0 && (
-              <div className="p-8 text-center text-gray-500 text-sm">
-                Aucune catégorie trouvée.
+
+            {paginatedCategories.length > 0 && (
+              <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
+                <div>Affichage de {(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedCategories.length > 0 ? 1 : 0)} à {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedCategories.length} sur {filteredCategories.length} catégories</div>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={validCurrentPage === 1}
+                    className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    Précédent
+                  </button>
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={validCurrentPage === totalPages}
+                    className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    Suivant
+                  </button>
+                </div>
               </div>
             )}
           </div>

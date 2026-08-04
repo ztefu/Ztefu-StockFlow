@@ -8,12 +8,22 @@ import { useRouter } from 'next/navigation'
 
 export function CompaniesClient({ initialCompanies }: { initialCompanies: any[] }) {
   const [search, setSearch] = useState('')
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const router = useRouter()
 
   const filteredCompanies = initialCompanies.filter(company => 
     company.name?.toLowerCase().includes(search.toLowerCase())
   )
+
+  const totalPages = Math.max(1, Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const paginatedCompanies = filteredCompanies.slice(
+    (validCurrentPage - 1) * ITEMS_PER_PAGE, 
+    validCurrentPage * ITEMS_PER_PAGE
+  );
 
   const handleToggleStatus = async (companyId: string, currentStatus: string) => {
     setLoadingId(companyId)
@@ -69,8 +79,8 @@ export function CompaniesClient({ initialCompanies }: { initialCompanies: any[] 
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filteredCompanies.length > 0 ? (
-                filteredCompanies.map((company) => {
+              {paginatedCompanies.length > 0 ? (
+                paginatedCompanies.map((company) => {
                   const isActive = company.subscription_status === 'Actif' || company.subscription_status === 'active'
                   
                   return (
@@ -154,8 +164,8 @@ export function CompaniesClient({ initialCompanies }: { initialCompanies: any[] 
 
         {/* Mobile Card View */}
         <div className="grid grid-cols-1 gap-4 md:hidden p-4">
-          {filteredCompanies.length > 0 ? (
-            filteredCompanies.map((company) => {
+          {paginatedCompanies.length > 0 ? (
+            paginatedCompanies.map((company) => {
               const isActive = company.subscription_status === 'Actif' || company.subscription_status === 'active'
               return (
                 <div key={company.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
@@ -238,6 +248,28 @@ export function CompaniesClient({ initialCompanies }: { initialCompanies: any[] 
             </div>
           )}
         </div>
+
+        {paginatedCompanies.length > 0 && (
+          <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
+            <div>Affichage de {(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedCompanies.length > 0 ? 1 : 0)} à {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedCompanies.length} sur {filteredCompanies.length} entreprises</div>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={validCurrentPage === 1}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Précédent
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={validCurrentPage === totalPages}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

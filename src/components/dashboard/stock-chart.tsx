@@ -11,7 +11,7 @@ export function StockChart({ data }: StockChartProps) {
     <div className="bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col h-[400px] hover:shadow-md hover:-translate-y-1 active:shadow-md active:-translate-y-1 transition-all duration-200">
       <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 shrink-0">Évolution des Mouvements</h3>
       <div className="flex-1 w-full overflow-x-auto overflow-y-hidden">
-        <div className="min-w-[500px] h-full">
+        <div className="w-full h-full min-w-0 md:min-w-[500px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={data}

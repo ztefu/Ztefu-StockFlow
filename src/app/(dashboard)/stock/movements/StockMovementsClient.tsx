@@ -9,6 +9,8 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
 
   const filteredMovements = initialMovements.filter(movement => {
     const matchesSearch = movement.product_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -17,6 +19,14 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
     const matchesDate = dateFilter ? movement.date.startsWith(dateFilter) : true;
     return matchesSearch && matchesType && matchesDate;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredMovements.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const paginatedMovements = filteredMovements.slice(
+    (validCurrentPage - 1) * ITEMS_PER_PAGE, 
+    validCurrentPage * ITEMS_PER_PAGE
+  );
 
   const handleExport = () => {
     const toastId = toast.loading("Génération du CSV...");
@@ -113,13 +123,14 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
                 <th className="px-6 py-4 font-medium">Type</th>
                 <th className="px-6 py-4 font-medium">Produit</th>
                 <th className="px-6 py-4 font-medium text-right">Quantité</th>
+                <th className="px-6 py-4 font-medium">Prix Unit.</th>
                 <th className="px-6 py-4 font-medium">Motif / Fournisseur</th>
                 <th className="px-6 py-4 font-medium">Utilisateur</th>
                 <th className="px-6 py-4 font-medium">Observation</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filteredMovements.map((movement) => (
+              {paginatedMovements.map((movement) => (
                 <tr key={movement.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{new Date(movement.date).toLocaleDateString('fr-FR')}</td>
                   <td className="px-6 py-4">
@@ -141,6 +152,9 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
                   <td className={`px-6 py-4 text-sm font-bold text-right whitespace-nowrap ${movement.type === "in" ? "text-green-600 dark:text-green-500" : "text-orange-600 dark:text-orange-500"}`}>
                     {movement.type === "in" ? "+" : "-"}{movement.quantity} <span className="font-normal text-xs">{movement.quantity > 1 ? `${movement.unit}s` : movement.unit}</span>
                   </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                    {movement.unit_price ? `${movement.unit_price} XAF` : '-'}
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {movement.type === "in" ? movement.fournisseur || "-" : movement.motif || "Vente"}
                   </td>
@@ -154,7 +168,7 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
               ))}
               {filteredMovements.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     Aucun mouvement trouvé.
                   </td>
                 </tr>
@@ -162,12 +176,24 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
             </tbody>
           </table>
         </div>
-        {filteredMovements.length > 0 && (
+        {paginatedMovements.length > 0 && (
           <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
-            <div>Affichage de 1 à {filteredMovements.length} sur {filteredMovements.length} mouvements</div>
+            <div>Affichage de {(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedMovements.length > 0 ? 1 : 0)} à {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedMovements.length} sur {filteredMovements.length} mouvements</div>
             <div className="flex gap-1">
-              <button className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Précédent</button>
-              <button className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Suivant</button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={validCurrentPage === 1}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Précédent
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={validCurrentPage === totalPages}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Suivant
+              </button>
             </div>
           </div>
         )}
@@ -175,7 +201,7 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
 
       {/* Mobile Card View */}
       <div className="grid grid-cols-1 gap-4 md:hidden">
-        {filteredMovements.map((movement) => (
+        {paginatedMovements.map((movement) => (
           <div key={movement.id} className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden p-4">
             <div className="flex justify-between items-start mb-3">
               <div>
@@ -195,12 +221,16 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-2 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl mb-3">
+            <div className="grid grid-cols-3 gap-2 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl mb-3">
               <div>
                 <p className="text-[11px] text-gray-500 mb-0.5">Quantité</p>
                 <p className={`text-sm font-bold ${movement.type === "in" ? "text-green-600 dark:text-green-500" : "text-orange-600 dark:text-orange-500"}`}>
                   {movement.type === "in" ? "+" : "-"}{movement.quantity} <span className="font-normal text-xs text-gray-500">{movement.quantity > 1 ? `${movement.unit}s` : movement.unit}</span>
                 </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">Prix</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{movement.unit_price ? `${movement.unit_price} XAF` : '-'}</p>
               </div>
               <div>
                 <p className="text-[11px] text-gray-500 mb-0.5">Utilisateur</p>
@@ -221,9 +251,31 @@ export default function StockMovementsClient({ initialMovements }: { initialMove
             </div>
           </div>
         ))}
-        {filteredMovements.length === 0 && (
+        {paginatedMovements.length === 0 && (
           <div className="text-center py-12 bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-gray-800">
             <p className="text-gray-500 text-sm">Aucun mouvement trouvé.</p>
+          </div>
+        )}
+        
+        {paginatedMovements.length > 0 && (
+          <div className="p-4 flex items-center justify-between text-sm text-gray-500 bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mt-2">
+            <div>{(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedMovements.length > 0 ? 1 : 0)} - {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedMovements.length} sur {filteredMovements.length}</div>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={validCurrentPage === 1}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Précédent
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={validCurrentPage === totalPages}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Suivant
+              </button>
+            </div>
           </div>
         )}
       </div>

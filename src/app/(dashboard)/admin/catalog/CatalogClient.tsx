@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 export function CatalogClient({ initialCategories, initialProducts }: { initialCategories: any[], initialProducts: any[] }) {
   const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
 
   // Modales
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -18,6 +20,22 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
 
   const filteredCategories = initialCategories.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
   const filteredProducts = initialProducts.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+
+  const totalPagesProducts = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
+  const validCurrentPageProducts = Math.min(currentPage, totalPagesProducts);
+  
+  const paginatedProducts = filteredProducts.slice(
+    (validCurrentPageProducts - 1) * ITEMS_PER_PAGE, 
+    validCurrentPageProducts * ITEMS_PER_PAGE
+  );
+
+  const totalPagesCategories = Math.max(1, Math.ceil(filteredCategories.length / ITEMS_PER_PAGE));
+  const validCurrentPageCategories = Math.min(currentPage, totalPagesCategories);
+  
+  const paginatedCategories = filteredCategories.slice(
+    (validCurrentPageCategories - 1) * ITEMS_PER_PAGE, 
+    validCurrentPageCategories * ITEMS_PER_PAGE
+  );
 
   const handleCreateCategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -90,7 +108,7 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
       <div className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden mb-8">
         <div className="flex border-b border-gray-100 dark:border-gray-800">
           <button
-            onClick={() => setActiveTab('products')}
+            onClick={() => { setActiveTab('products'); setCurrentPage(1); }}
             className={`flex-1 py-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors relative ${activeTab === 'products' ? 'text-primary' : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'}`}
           >
             <Package className="w-4 h-4" />
@@ -100,7 +118,7 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
             )}
           </button>
           <button
-            onClick={() => setActiveTab('categories')}
+            onClick={() => { setActiveTab('categories'); setCurrentPage(1); }}
             className={`flex-1 py-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors relative ${activeTab === 'categories' ? 'text-primary' : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'}`}
           >
             <Tags className="w-4 h-4" />
@@ -117,7 +135,7 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
               type="text"
               placeholder="Rechercher..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
@@ -136,7 +154,7 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {filteredProducts.map((p) => (
+                {paginatedProducts.map((p) => (
                   <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -166,7 +184,7 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
                     </td>
                   </tr>
                 ))}
-                {filteredProducts.length === 0 && (
+                {paginatedProducts.length === 0 && (
                   <tr>
                     <td colSpan={4} className="p-8 text-center text-gray-500">Aucun produit global trouvé.</td>
                   </tr>
@@ -183,7 +201,7 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {filteredCategories.map((c) => (
+                {paginatedCategories.map((c) => (
                   <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -204,7 +222,7 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
                     </td>
                   </tr>
                 ))}
-                {filteredCategories.length === 0 && (
+                {paginatedCategories.length === 0 && (
                   <tr>
                     <td colSpan={3} className="p-8 text-center text-gray-500">Aucune catégorie globale trouvée.</td>
                   </tr>
@@ -217,12 +235,12 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
         {/* Mobile Card Views */}
         <div className="grid grid-cols-1 gap-4 md:hidden p-4">
           {activeTab === 'products' ? (
-            filteredProducts.length === 0 ? (
+            paginatedProducts.length === 0 ? (
               <div className="text-center py-8 text-gray-500 text-sm">
                 Aucun produit global trouvé.
               </div>
             ) : (
-              filteredProducts.map((p) => (
+              paginatedProducts.map((p) => (
                 <div key={p.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
@@ -259,12 +277,12 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
               ))
             )
           ) : (
-            filteredCategories.length === 0 ? (
+            paginatedCategories.length === 0 ? (
               <div className="text-center py-8 text-gray-500 text-sm">
                 Aucune catégorie globale trouvée.
               </div>
             ) : (
-              filteredCategories.map((c) => (
+              paginatedCategories.map((c) => (
                 <div key={c.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
@@ -297,6 +315,50 @@ export function CatalogClient({ initialCategories, initialProducts }: { initialC
             )
           )}
         </div>
+
+        {activeTab === 'products' && paginatedProducts.length > 0 && (
+          <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
+            <div>Affichage de {(validCurrentPageProducts - 1) * ITEMS_PER_PAGE + (paginatedProducts.length > 0 ? 1 : 0)} à {(validCurrentPageProducts - 1) * ITEMS_PER_PAGE + paginatedProducts.length} sur {filteredProducts.length} produits globaux</div>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={validCurrentPageProducts === 1}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Précédent
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPagesProducts, prev + 1))}
+                disabled={validCurrentPageProducts === totalPagesProducts}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'categories' && paginatedCategories.length > 0 && (
+          <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
+            <div>Affichage de {(validCurrentPageCategories - 1) * ITEMS_PER_PAGE + (paginatedCategories.length > 0 ? 1 : 0)} à {(validCurrentPageCategories - 1) * ITEMS_PER_PAGE + paginatedCategories.length} sur {filteredCategories.length} catégories globales</div>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={validCurrentPageCategories === 1}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Précédent
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPagesCategories, prev + 1))}
+                disabled={validCurrentPageCategories === totalPagesCategories}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal Produit */}

@@ -9,6 +9,8 @@ export async function createStockEntry(formData: FormData) {
   const date = formData.get('date') as string;
   const fournisseur = formData.get('fournisseur') as string;
   const observation = formData.get('remarque') as string;
+  const unit_price_str = formData.get('unit_price') as string;
+  const unit_price = unit_price_str ? parseFloat(unit_price_str) : null;
 
   if (!product_id || isNaN(quantity) || quantity <= 0 || !date) {
     return { error: 'Veuillez remplir les champs obligatoires correctement.' };
@@ -80,7 +82,8 @@ export async function createStockEntry(formData: FormData) {
       fournisseur: fournisseur || null,
       observation: observation || null,
       status: 'completed',
-      company_id: profile.company_id
+      company_id: profile.company_id,
+      unit_price
     }]);
 
   if (error) {
@@ -99,6 +102,8 @@ export async function createStockExit(formData: FormData) {
   const date = formData.get('date') as string;
   const motif = formData.get('motif') as string;
   const observation = formData.get('remarque') as string;
+  const unit_price_str = formData.get('unit_price') as string;
+  const unit_price = unit_price_str ? parseFloat(unit_price_str) : null;
 
   if (!product_id || isNaN(quantity) || quantity <= 0 || !date) {
     return { error: 'Veuillez remplir les champs obligatoires correctement.' };
@@ -174,7 +179,8 @@ export async function createStockExit(formData: FormData) {
       motif: motif || null,
       observation: observation || null,
       status: 'completed',
-      company_id: profile.company_id
+      company_id: profile.company_id,
+      unit_price
     }]);
 
   if (error) {

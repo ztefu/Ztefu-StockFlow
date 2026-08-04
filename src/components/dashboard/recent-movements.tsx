@@ -19,7 +19,7 @@ export function RecentMovements({ movements }: RecentMovementsProps) {
           <ArrowUpRight className="w-4 h-4" />
         </Link>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto hidden md:block">
         <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 text-xs uppercase tracking-wider">
@@ -59,6 +59,49 @@ export function RecentMovements({ movements }: RecentMovementsProps) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="grid grid-cols-1 gap-4 md:hidden p-4">
+        {movements.map((movement) => (
+          <div key={movement.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{movement.product}</h4>
+              <span className={cn(
+                "shrink-0 inline-flex items-center px-2 py-1 rounded-md text-[10px] font-medium",
+                movement.type === 'in' 
+                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+              )}>
+                {movement.type === 'in' ? 'Entrée' : 'Sortie'}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">Quantité</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {movement.type === 'in' ? '+' : '-'}{movement.quantity} <span className="text-gray-500 font-normal">{movement.quantity > 1 ? `${movement.unit}s` : movement.unit}</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">Date</p>
+                <p className="text-sm text-gray-900 dark:text-white">
+                  {new Date(movement.date).toLocaleDateString('fr-FR')}
+                </p>
+              </div>
+              <div className="col-span-2 mt-2">
+                <p className="text-[11px] text-gray-500 mb-0.5">Utilisateur</p>
+                <p className="text-sm text-gray-900 dark:text-white">{movement.user}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+        {movements.length === 0 && (
+          <div className="text-center py-8 text-gray-500 text-sm">
+            Aucun mouvement récent.
+          </div>
+        )}
       </div>
     </div>
   );

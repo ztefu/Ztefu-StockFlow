@@ -40,6 +40,8 @@ export default function ProductsClient({
 
   const [products, setProducts] = useState(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   const [isPending, startTransition] = useTransition();
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +66,15 @@ export default function ProductsClient({
     
     return matchesSearch && matchesCategory && matchesStatus;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
+  // Ensure currentPage is within bounds
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const paginatedProducts = filteredProducts.slice(
+    (validCurrentPage - 1) * ITEMS_PER_PAGE, 
+    validCurrentPage * ITEMS_PER_PAGE
+  );
 
   const confirmDelete = (id: string) => {
     setProductToDelete(id);
@@ -308,7 +319,7 @@ export default function ProductsClient({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filteredProducts.map((product) => (
+              {paginatedProducts.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -388,17 +399,29 @@ export default function ProductsClient({
           </table>
         </div>
         <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
-          <div>Affichage de 1 à {filteredProducts.length} sur {initialProducts.length} produits</div>
+          <div>Affichage de {(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedProducts.length > 0 ? 1 : 0)} à {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedProducts.length} sur {filteredProducts.length} produits</div>
           <div className="flex gap-1">
-            <button className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Précédent</button>
-            <button className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">Suivant</button>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={validCurrentPage === 1}
+              className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              Précédent
+            </button>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={validCurrentPage === totalPages}
+              className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              Suivant
+            </button>
           </div>
         </div>
       </div>
 
       {/* Product List Mobile (Card View) */}
       <div className="grid grid-cols-1 gap-4 md:hidden">
-        {filteredProducts.map((product) => (
+        {paginatedProducts.map((product) => (
           <div key={product.id} className="bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden p-4">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex items-center gap-3">
@@ -464,9 +487,32 @@ export default function ProductsClient({
             </div>
           </div>
         ))}
-        {filteredProducts.length === 0 && (
+        
+        {paginatedProducts.length === 0 && (
           <div className="text-center py-12 bg-white dark:bg-dark-surface rounded-2xl border border-gray-100 dark:border-gray-800">
             <p className="text-gray-500 text-sm">Aucun produit trouvé.</p>
+          </div>
+        )}
+
+        {paginatedProducts.length > 0 && (
+          <div className="p-4 flex items-center justify-between text-sm text-gray-500 bg-white dark:bg-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mt-2">
+            <div>{(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedProducts.length > 0 ? 1 : 0)} - {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedProducts.length} sur {filteredProducts.length}</div>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={validCurrentPage === 1}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Précédent
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={validCurrentPage === totalPages}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Suivant
+              </button>
+            </div>
           </div>
         )}
       </div>

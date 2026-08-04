@@ -34,7 +34,7 @@ export default async function DashboardPage() {
     // 2. Fetch movements for today
     supabase
       .from('stock_movements')
-      .select('*')
+      .select('*, products(price)')
       .eq('company_id', companyId)
       .gte('date', today.toISOString()),
       
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
     // 4. Fetch all movements for chart
     supabase
       .from('stock_movements')
-      .select('type, quantity, date')
+      .select('type, quantity, date, unit_price, motif, products(price)')
       .eq('company_id', companyId)
   ]);
 
@@ -90,6 +90,10 @@ export default async function DashboardPage() {
     .filter((m: any) => m.type === 'out')
     .reduce((acc: number, m: any) => acc + m.quantity, 0);
 
+  const realRevenueToday = todayMovements
+    .filter((m: any) => m.type === 'out' && m.motif === 'Vente')
+    .reduce((acc: number, m: any) => acc + (m.quantity * (m.unit_price || m.products?.price || 0)), 0);
+
   const recentMovements = (recentMovementsData || []).map((m: any) => ({
     id: m.id,
     product: m.products?.name || "Produit inconnu",
@@ -125,22 +129,31 @@ export default async function DashboardPage() {
     });
   }
 
+  const currentMonthIndex = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const currentMonthMovements = (allMovements || []).filter((m: any) => {
+    const mDate = new Date(m.date);
+    return mDate.getMonth() === currentMonthIndex && mDate.getFullYear() === currentYear;
+  });
+
+  const realRevenueMonth = currentMonthMovements
+    .filter((m: any) => m.type === 'out' && m.motif === 'Vente')
+    .reduce((acc: number, m: any) => acc + (m.quantity * (m.unit_price || m.products?.price || 0)), 0);
+
   const stats = {
     totalStockValue,
     totalPotentialRevenue,
     totalProducts,
     lowStockItems,
-    outOfStockItems,
-    entriesToday,
-    exitsToday
+    outOfStockItems
   };
 
   return (
     <DashboardClient 
       stats={stats}
-      chartData={chartData}
       recentMovements={recentMovements}
       lowStockProducts={lowStockProducts}
+      allMovements={allMovements || []}
     />
   );
 }

@@ -15,6 +15,8 @@ interface AlertsClientProps {
 
 export function AlertsClient({ allAlerts: initialAlerts, outOfStockCount, lowStockCount }: AlertsClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   const [alertsList, setAlertsList] = useState(initialAlerts);
   const supabase = createClient();
   const { limits } = useSubscription();
@@ -44,6 +46,14 @@ export function AlertsClient({ allAlerts: initialAlerts, outOfStockCount, lowSto
   const alerts = alertsList.filter((product: any) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const totalPages = Math.max(1, Math.ceil(alerts.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const paginatedAlerts = alerts.slice(
+    (validCurrentPage - 1) * ITEMS_PER_PAGE, 
+    validCurrentPage * ITEMS_PER_PAGE
   );
 
   const handleOrder = async (id: string, name: string) => {
@@ -129,13 +139,13 @@ export function AlertsClient({ allAlerts: initialAlerts, outOfStockCount, lowSto
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {alerts.length === 0 ? (
+              {paginatedAlerts.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
                     Aucun produit en alerte trouvé.
                   </td>
                 </tr>
-              ) : alerts.map((product: any) => (
+              ) : paginatedAlerts.map((product: any) => (
                 <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="px-6 py-4">
                     <div>
@@ -183,11 +193,11 @@ export function AlertsClient({ allAlerts: initialAlerts, outOfStockCount, lowSto
 
         {/* Mobile Card View */}
         <div className="grid grid-cols-1 gap-4 md:hidden p-4">
-          {alerts.length === 0 ? (
+          {paginatedAlerts.length === 0 ? (
             <div className="text-center py-8 text-gray-500 text-sm">
               Aucun produit en alerte trouvé.
             </div>
-          ) : alerts.map((product: any) => (
+          ) : paginatedAlerts.map((product: any) => (
             <div key={product.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
               <div className="flex justify-between items-start mb-2">
                 <div>
@@ -234,6 +244,28 @@ export function AlertsClient({ allAlerts: initialAlerts, outOfStockCount, lowSto
             </div>
           ))}
         </div>
+
+        {paginatedAlerts.length > 0 && (
+          <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
+            <div>Affichage de {(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedAlerts.length > 0 ? 1 : 0)} à {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedAlerts.length} sur {alerts.length} alertes</div>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={validCurrentPage === 1}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Précédent
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={validCurrentPage === totalPages}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

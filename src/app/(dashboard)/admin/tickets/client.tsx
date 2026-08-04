@@ -24,6 +24,8 @@ interface TicketsClientProps {
 
 export function TicketsClient({ tickets: initialTickets }: TicketsClientProps) {
   const [tickets, setTickets] = useState<SupportTicket[]>(initialTickets);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [replyText, setReplyText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,6 +112,14 @@ export function TicketsClient({ tickets: initialTickets }: TicketsClientProps) {
     }
   };
 
+  const totalPages = Math.max(1, Math.ceil(tickets.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const paginatedTickets = tickets.slice(
+    (validCurrentPage - 1) * ITEMS_PER_PAGE, 
+    validCurrentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="w-full space-y-8">
       {/* Header */}
@@ -137,14 +147,14 @@ export function TicketsClient({ tickets: initialTickets }: TicketsClientProps) {
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-100 dark:divide-gray-800">
-                {tickets.length === 0 ? (
+                {paginatedTickets.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-gray-500">
                       Aucun ticket d'assistance pour le moment.
                     </td>
                   </tr>
                 ) : (
-                  tickets.map((ticket) => (
+                  paginatedTickets.map((ticket) => (
                     <tr key={ticket.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
                       <td className="py-4 px-6 text-gray-900 dark:text-gray-100 whitespace-nowrap">
                         {new Date(ticket.created_at).toLocaleString('fr-FR', { 
@@ -194,12 +204,12 @@ export function TicketsClient({ tickets: initialTickets }: TicketsClientProps) {
 
         {/* Mobile Card View */}
         <div className="grid grid-cols-1 gap-4 md:hidden p-4">
-          {tickets.length === 0 ? (
+          {paginatedTickets.length === 0 ? (
             <div className="text-center py-8 text-gray-500 text-sm">
               Aucun ticket d'assistance pour le moment.
             </div>
           ) : (
-            tickets.map((ticket) => (
+            paginatedTickets.map((ticket) => (
               <div key={ticket.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1 pr-2">
@@ -247,6 +257,28 @@ export function TicketsClient({ tickets: initialTickets }: TicketsClientProps) {
             ))
           )}
         </div>
+
+        {paginatedTickets.length > 0 && (
+          <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
+            <div>Affichage de {(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedTickets.length > 0 ? 1 : 0)} à {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedTickets.length} sur {tickets.length} tickets</div>
+            <div className="flex gap-1">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={validCurrentPage === 1}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Précédent
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={validCurrentPage === totalPages}
+                className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Ticket Details Modal */}

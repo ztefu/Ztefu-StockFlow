@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { Minus, Search, AlertTriangle, ArrowUpFromLine } from "lucide-react";
 import toast from "react-hot-toast";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -14,6 +14,8 @@ export default function StockExitsClient({
   initialExits: any[] 
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
   const [isPending, startTransition] = useTransition();
   
   // Form state
@@ -22,6 +24,7 @@ export default function StockExitsClient({
   const [motif, setMotif] = useState("");
   const [remarque, setRemarque] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [unitPrice, setUnitPrice] = useState("");
 
   const exits = initialExits.filter(exit => 
     exit.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -29,7 +32,23 @@ export default function StockExitsClient({
     (exit.motif && exit.motif.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const totalPages = Math.max(1, Math.ceil(exits.length / ITEMS_PER_PAGE));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const paginatedExits = exits.slice(
+    (validCurrentPage - 1) * ITEMS_PER_PAGE, 
+    validCurrentPage * ITEMS_PER_PAGE
+  );
+
   const selectedProduct = products.find(p => p.id === selectedProductId);
+
+  useEffect(() => {
+    if (motif === "Vente" && selectedProduct) {
+      setUnitPrice(selectedProduct.price?.toString() || "");
+    } else {
+      setUnitPrice("");
+    }
+  }, [motif, selectedProduct]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +71,7 @@ export default function StockExitsClient({
       formData.append('date', date);
       if (motif) formData.append('motif', motif);
       if (remarque) formData.append('remarque', remarque);
+      if (motif === "Vente" && unitPrice) formData.append('unit_price', unitPrice);
 
       const res = await createStockExit(formData);
       
@@ -64,6 +84,7 @@ export default function StockExitsClient({
         setQuantity("");
         setMotif("");
         setRemarque("");
+        setUnitPrice("");
         setDate(new Date().toISOString().split('T')[0]);
       }
     });
@@ -146,6 +167,21 @@ export default function StockExitsClient({
                 </select>
               </div>
 
+              {motif === "Vente" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prix de vente unitaire (Réel) *</label>
+                  <input 
+                    type="number" 
+                    value={unitPrice}
+                    onChange={(e) => setUnitPrice(e.target.value)}
+                    required
+                    placeholder="Ex: 5000" 
+                    className="w-full bg-gray-50 dark:bg-gray-800 text-sm rounded-lg px-4 py-2.5 outline-none border border-transparent focus:border-primary focus:bg-white transition-colors" 
+                    disabled={isPending}
+                  />
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remarque</label>
                 <textarea 
@@ -194,17 +230,21 @@ export default function StockExitsClient({
                     <th className="px-6 py-4 font-medium">Date</th>
                     <th className="px-6 py-4 font-medium">Produit</th>
                     <th className="px-6 py-4 font-medium">Quantité</th>
+                    <th className="px-6 py-4 font-medium">Prix Vente</th>
                     <th className="px-6 py-4 font-medium">Motif</th>
                     <th className="px-6 py-4 font-medium">Utilisateur</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {exits.map((exit) => (
+                  {paginatedExits.map((exit) => (
                     <tr key={exit.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-6 py-4 text-sm text-gray-500">{new Date(exit.date).toLocaleDateString('fr-FR')}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{exit.product_name}</td>
                       <td className="px-6 py-4 text-sm font-bold text-red-600 dark:text-red-500">
                         -{exit.quantity} {exit.quantity > 1 ? `${exit.unit}s` : exit.unit}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">
+                        {exit.unit_price ? `${exit.unit_price} XAF` : '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-300">
@@ -216,7 +256,7 @@ export default function StockExitsClient({
                   ))}
                   {exits.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                         Aucune sortie trouvée.
                       </td>
                     </tr>
@@ -227,7 +267,7 @@ export default function StockExitsClient({
 
             {/* Mobile Card View */}
             <div className="grid grid-cols-1 gap-4 md:hidden p-4">
-              {exits.map((exit) => (
+              {paginatedExits.map((exit) => (
                 <div key={exit.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -240,7 +280,11 @@ export default function StockExitsClient({
                     </span>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div>
+                      <p className="text-[11px] text-gray-500 mb-0.5">Prix</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{exit.unit_price ? `${exit.unit_price} XAF` : '-'}</p>
+                    </div>
                     <div>
                       <p className="text-[11px] text-gray-500 mb-0.5">Motif</p>
                       <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-300">
@@ -254,12 +298,34 @@ export default function StockExitsClient({
                   </div>
                 </div>
               ))}
-              {exits.length === 0 && (
+              {paginatedExits.length === 0 && (
                 <div className="text-center py-8 text-gray-500 text-sm">
                   Aucune sortie trouvée.
                 </div>
               )}
             </div>
+
+            {paginatedExits.length > 0 && (
+              <div className="p-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-sm text-gray-500">
+                <div>Affichage de {(validCurrentPage - 1) * ITEMS_PER_PAGE + (paginatedExits.length > 0 ? 1 : 0)} à {(validCurrentPage - 1) * ITEMS_PER_PAGE + paginatedExits.length} sur {exits.length} sorties</div>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={validCurrentPage === 1}
+                    className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    Précédent
+                  </button>
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={validCurrentPage === totalPages}
+                    className="px-3 py-1 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
