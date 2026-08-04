@@ -159,3 +159,23 @@ export async function toggleCompanyStatus(companyId: string, currentStatus: stri
     return { success: false, error: error.message }
   }
 }
+
+export async function markNotificationAsRead(id: string) {
+  try {
+    const admin = await getSupabaseAdmin()
+    
+    const { error } = await admin
+      .from('super_admin_notifications')
+      .update({ is_read: true })
+      .eq('id', id)
+
+    if (error) throw error
+
+    revalidatePath('/', 'layout')
+    
+    return { success: true }
+  } catch (error: any) {
+    console.error("Erreur lors du marquage de la notification:", error)
+    return { success: false, error: error.message }
+  }
+}
